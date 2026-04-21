@@ -6,3 +6,4 @@ httpx==0.28.1
 idna==3.11
 python-dotenv==1.2.2
 python-telegram-bot==22.7
+sqlalchemy[asyncio]==2.0.36
