@@ -1,4 +1,5 @@
 import asyncio
+import re
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -30,28 +31,44 @@ CACHE_TTL           = 3600  # 1 hour
 
 # ── Steam helpers ──────────────────────────────────────────────────────────
 async def resolve_steam_id(client: httpx.AsyncClient, steam_id_or_name: str) -> str:
-    """Если передан не числовой ID — резолвим vanity URL в SteamID64."""
+    """
+    Резолвит vanity URL (username) в SteamID64.
+    Сначала пробует официальный API (если есть ключ),
+    затем fallback — парсинг XML-профиля Steam.
+    """
     if steam_id_or_name.isdigit():
         return steam_id_or_name
 
-    if not STEAM_API_KEY:
-        # Без ключа просто возвращаем как есть — Steam сам вернёт ошибку
-        return steam_id_or_name
+    # Способ 1: официальный API Steam
+    if STEAM_API_KEY:
+        try:
+            resp = await client.get(
+                STEAM_RESOLVE_URL,
+                params={"key": STEAM_API_KEY, "vanityurl": steam_id_or_name},
+                timeout=10,
+            )
+            data = resp.json()
+            response = data.get("response", {})
+            if response.get("success") == 1:
+                return response["steamid"]
+        except Exception:
+            pass
 
+    # Способ 2: парсинг XML-профиля (работает без API ключа)
     try:
         resp = await client.get(
-            STEAM_RESOLVE_URL,
-            params={"key": STEAM_API_KEY, "vanityurl": steam_id_or_name},
+            f"https://steamcommunity.com/id/{steam_id_or_name}",
+            params={"xml": 1},
             timeout=10,
+            headers={"User-Agent": "Mozilla/5.0"},
         )
-        data = resp.json()
-        response = data.get("response", {})
-        if response.get("success") == 1:
-            return response["steamid"]
+        match = re.search(r"<steamID64>(\d+)</steamID64>", resp.text)
+        if match:
+            return match.group(1)
     except Exception:
         pass
 
-    # Не удалось — возвращаем оригинал
+    # Не удалось — возвращаем оригинал (вызывающий код должен проверить)
     return steam_id_or_name
 
 
@@ -148,18 +165,21 @@ async def fetch_steam_inventory(client: httpx.AsyncClient, steam_id: str) -> lis
         if data is None:
             raise HTTPException(
                 status_code=502,
-                detail=f"Steam returned invalid response (status {resp.status_code}). "
-                       "Inventory may be private or Steam is rate-limiting.",
+                detail=(
+                    f"Steam вернул некорректный ответ (статус {resp.status_code}). "
+                    "Инвентарь может быть закрытым или Steam ограничивает запросы."
+                ),
             )
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Steam API error: {e}")
+        raise HTTPException(status_code=502, detail=f"Ошибка Steam API: {e}")
 
     if not data.get("success", False) and data.get("Error"):
         raise HTTPException(
-            status_code=404, detail="Inventory is private or Steam ID not found"
+            status_code=404,
+            detail="Инвентарь закрыт или SteamID не найден",
         )
 
     descriptions = {
@@ -229,25 +249,19 @@ async def resolve_vanity(vanity_url: str):
     if vanity_url.isdigit():
         return {"vanity_url": vanity_url, "steam_id": vanity_url}
 
-    if not STEAM_API_KEY:
-        raise HTTPException(status_code=503, detail="STEAM_API_KEY not configured")
-
     async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(
-                STEAM_RESOLVE_URL,
-                params={"key": STEAM_API_KEY, "vanityurl": vanity_url},
-                timeout=10,
-            )
-            data = resp.json()
-        except Exception as e:
-            raise HTTPException(status_code=502, detail=f"Steam API error: {e}")
+        resolved = await resolve_steam_id(client, vanity_url)
 
-    response = data.get("response", {})
-    if response.get("success") != 1:
-        raise HTTPException(status_code=404, detail="Steam username not found")
+    if not resolved.isdigit():
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"Не удалось найти Steam-аккаунт '{vanity_url}'. "
+                "Проверьте правильность имени пользователя."
+            ),
+        )
 
-    return {"vanity_url": vanity_url, "steam_id": response["steamid"]}
+    return {"vanity_url": vanity_url, "steam_id": resolved}
 
 
 @app.get("/api/search")
@@ -290,10 +304,23 @@ async def get_price(
 @app.get("/api/inventory/{steam_id}")
 async def get_inventory(steam_id: str):
     async with httpx.AsyncClient() as client:
-        # Автоматически резолвим username → SteamID64
-        steam_id = await resolve_steam_id(client, steam_id)
-        items = await fetch_steam_inventory(client, steam_id)
-    return {"steam_id": steam_id, "items": items, "count": len(items)}
+        resolved = await resolve_steam_id(client, steam_id)
+
+        # ── ИСПРАВЛЕНИЕ: проверяем что резолвинг прошёл успешно ──────────
+        if not resolved.isdigit():
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Не удалось определить SteamID64 для '{steam_id}'. "
+                    "Передайте числовой SteamID64 напрямую или укажите корректный "
+                    "username. Если проблема повторяется — добавьте переменную "
+                    "окружения STEAM_API_KEY."
+                ),
+            )
+
+        items = await fetch_steam_inventory(client, resolved)
+
+    return {"steam_id": resolved, "items": items, "count": len(items)}
 
 
 @app.get("/api/portfolio/{steam_id}")
@@ -301,9 +328,14 @@ async def get_portfolio(
     steam_id: str,
     session: AsyncSession = Depends(get_session),
 ):
-    # Резолвим на случай если передали username
     async with httpx.AsyncClient() as client:
         steam_id = await resolve_steam_id(client, steam_id)
+
+    if not steam_id.isdigit():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Не удалось определить SteamID64 для указанного пользователя.",
+        )
 
     result = await session.execute(
         select(Portfolio)
@@ -364,9 +396,14 @@ async def add_item(
     req: AddItemRequest,
     session: AsyncSession = Depends(get_session),
 ):
-    # Резолвим steam_id если нужно
     async with httpx.AsyncClient() as client:
         resolved_id = await resolve_steam_id(client, req.steam_id)
+
+    if not resolved_id.isdigit():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Не удалось определить SteamID64 для '{req.steam_id}'.",
+        )
 
     result = await session.execute(
         select(Portfolio).where(
