@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DB_PATH=/app/data/skinvault.db
+    restart: unless-stopped
+
+  bot:
+    build: ./backend
+    command: python bot.py
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - WEBAPP_URL=${WEBAPP_URL}
+    depends_on:
+      - api
+    restart: unless-stopped

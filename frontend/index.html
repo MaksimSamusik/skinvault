@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>SkinVault</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --bg: #0a0f1a;
+  --surface: #0d1421;
+  --surface2: #111827;
+  --border: #1e2d45;
+  --border2: #2a3d55;
+  --text: #e8eaf0;
+  --muted: #8a9ab0;
+  --hint: #4a6080;
+  --amber: #f4a400;
+  --amber-dim: rgba(244,164,0,0.12);
+  --green: #3dd68c;
+  --red: #e05555;
+  --purple: #9f6ae8;
+  --blue: #4a8fe8;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Text', sans-serif; font-size: 14px; overscroll-behavior: none; }
+body { display: flex; flex-direction: column; }
+
+/* ── Header ── */
+.header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 12px 16px; flex-shrink: 0; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.logo { display: flex; align-items: center; gap: 9px; }
+.logo-icon { width: 30px; height: 30px; background: var(--amber); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #0a0f1a; letter-spacing: -1px; }
+.logo-name { font-size: 16px; font-weight: 600; }
+.logo-sub { font-size: 11px; color: var(--hint); }
+.live-dot { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--green); }
+.live-dot::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; display: block; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+/* ── Steam input row ── */
+.steam-row { display: flex; gap: 8px; }
+.steam-input { flex: 1; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; }
+.steam-input:focus { border-color: var(--amber); }
+.steam-input::placeholder { color: var(--hint); }
+.btn { border: none; border-radius: 8px; padding: 8px 15px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--amber); color: #0a0f1a; }
+.btn-primary:active { opacity: .8; transform: scale(.97); }
+
+/* ── Stats cards ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 16px; flex-shrink: 0; }
+.stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.stat-label { font-size: 11px; color: var(--hint); margin-bottom: 3px; }
+.stat-value { font-size: 21px; font-weight: 600; }
+.stat-sub { font-size: 11px; margin-top: 2px; }
+.c-amber { color: var(--amber); }
+.c-green { color: var(--green); }
+.c-red { color: var(--red); }
+.c-muted { color: var(--muted); }
+
+/* ── Chart ── */
+.chart-wrap { padding: 0 16px 4px; flex-shrink: 0; }
+.chart-label { font-size: 11px; color: var(--hint); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.chart-container { height: 72px; position: relative; }
+#portfolioChart { width: 100%; height: 100%; }
+
+/* ── Tabs ── */
+.tabs { display: flex; border-bottom: 0.5px solid var(--border); flex-shrink: 0; padding: 0 16px; }
+.tab { flex: 1; padding: 10px 0; text-align: center; font-size: 13px; color: var(--hint); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: color .15s; }
+.tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+/* ── Scroll area ── */
+.scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.tab-panel { display: none; padding-bottom: 80px; }
+.tab-panel.active { display: block; }
+
+/* ── Items list ── */
+.item-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 0.5px solid var(--border);
+  cursor: pointer;
+  transition: background .1s;
+  position: relative;
+}
+.item-card:active { background: var(--surface); }
+.item-card.selected { background: var(--amber-dim); }
+.rarity-stripe { width: 3px; height: 44px; border-radius: 2px; flex-shrink: 0; }
+.item-thumb {
+  width: 64px; height: 48px; border-radius: 8px;
+  background: var(--surface2);
+  flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.item-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.item-thumb .img-fallback { font-size: 26px; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 13px; font-weight: 500; color: #c8d0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-tags { display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
+.tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
+.tag-covert { background: #2d0f0f; color: var(--red); }
+.tag-classified { background: #1a0f2d; color: var(--purple); }
+.tag-restricted { background: #0f1a2d; color: var(--blue); }
+.tag-mil_spec_grade,.tag-industrial_grade { background: #0f1a2d; color: #5a8fc8; }
+.tag-fn { background: #0f2218; color: var(--green); }
+.tag-mw { background: #0e1f14; color: #5bcf8a; }
+.tag-ft { background: #1a1708; color: #c8a840; }
+.tag-ww,.tag-bs { background: #1a1010; color: #c85050; }
+.item-right { text-align: right; flex-shrink: 0; }
+.item-price { font-size: 14px; font-weight: 600; }
+.item-pnl { font-size: 11px; margin-top: 2px; }
+.item-qty { font-size: 10px; color: var(--hint); margin-top: 1px; }
+
+/* ── Detail panel ── */
+.detail-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 0.5px solid var(--border);
+  border-radius: 16px 16px 0 0;
+  padding: 0 16px 32px;
+  transform: translateY(100%);
+  transition: transform .25s ease;
+  z-index: 100;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+.detail-panel.open { transform: translateY(0); }
+.detail-drag { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 10px auto 14px; }
+.detail-img-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+.detail-img { width: 160px; height: 110px; object-fit: contain; background: var(--surface2); border-radius: 12px; }
+.detail-name { font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+.detail-wear { text-align: center; font-size: 12px; color: var(--hint); margin-bottom: 14px; }
+.detail-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.ds-card { background: var(--surface2); border-radius: 8px; padding: 9px 11px; }
+.ds-label { font-size: 11px; color: var(--hint); }
+.ds-val { font-size: 17px; font-weight: 600; margin-top: 2px; }
+.mini-hist { height: 60px; margin-bottom: 14px; }
+.mini-hist svg { width: 100%; height: 100%; }
+.detail-actions { display: flex; gap: 8px; }
+.btn-del { flex: 1; background: rgba(224,85,85,.12); color: var(--red); border: 0.5px solid rgba(224,85,85,.3); border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-close { flex: 1; background: var(--surface2); color: var(--muted); border: 0.5px solid var(--border); border-radius: 8px; padding: 10px; font-size: 13px; cursor: pointer; }
+
+/* ── Add form ── */
+.add-section { padding: 12px 16px; }
+.search-wrap { position: relative; margin-bottom: 10px; }
+.search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
+.search-input { width: 100%; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 8px; padding: 9px 12px 9px 34px; color: var(--text); font-size: 13px; outline: none; }
+.search-input:focus { border-color: var(--amber); }
+.search-results { background: var(--surface); border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 4px; }
+.sr-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; border-bottom: 0.5px solid var(--border); transition: background .1s; }
+.sr-item:last-child { border-bottom: none; }
+.sr-item:active { background: var(--surface2); }
+.sr-thumb { width: 44px; height: 32px; background: var(--surface2); border-radius: 6px; object-fit: contain; flex-shrink: 0; }
+.sr-name { font-size: 12px; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.add-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; margin-top: 8px; }
+.form-row { margin-bottom: 10px; }
+.form-label { font-size: 11px; color: var(--hint); margin-bottom: 4px; }
+.form-input { width: 100%; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 7px; padding: 8px 11px; color: var(--text); font-size: 14px; outline: none; }
+.form-input:focus { border-color: var(--amber); }
+.selected-skin { display: flex; align-items: center; gap: 10px; padding: 8px 0; margin-bottom: 8px; }
+.selected-thumb { width: 52px; height: 38px; border-radius: 6px; object-fit: contain; background: var(--surface2); }
+.selected-name { font-size: 13px; font-weight: 500; }
+.selected-price { font-size: 11px; color: var(--hint); margin-top: 2px; }
+
+/* ── History tab ── */
+.history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 0.5px solid var(--border); }
+.hi-date { font-size: 11px; color: var(--hint); width: 50px; }
+.hi-name { flex: 1; font-size: 12px; color: var(--muted); padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hi-delta { font-size: 12px; font-weight: 600; }
+
+/* ── Analytics tab ── */
+.analytics-section { padding: 12px 16px; }
+.top-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.top-rank { width: 22px; font-size: 13px; font-weight: 600; color: var(--hint); flex-shrink: 0; }
+.top-thumb { width: 52px; height: 38px; border-radius: 6px; object-fit: contain; background: var(--surface2); flex-shrink: 0; }
+.top-info { flex: 1; min-width: 0; }
+.top-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-pnl { font-size: 11px; margin-top: 2px; }
+.section-title { font-size: 12px; color: var(--hint); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+/* ── Empty / loading states ── */
+.empty { text-align: center; padding: 40px 20px; color: var(--hint); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-text { font-size: 14px; }
+.loading { display: flex; flex-direction: column; align-items: center; padding: 30px; gap: 10px; color: var(--hint); font-size: 13px; }
+.spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--amber); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-60px); background: var(--surface); border: 0.5px solid var(--amber); border-radius: 8px; padding: 8px 18px; font-size: 13px; color: var(--amber); z-index: 200; transition: transform .25s ease; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Overlay ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 90; }
+.overlay.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">CS</div>
+      <div>
+        <div class="logo-name">SkinVault</div>
+        <div class="logo-sub">CS2 Portfolio Tracker</div>
+      </div>
+    </div>
+    <div class="live-dot">live</div>
+  </div>
+  <div class="steam-row">
+    <input class="steam-input" id="steamInput" placeholder="Steam64 ID (76561198...)" inputmode="numeric"/>
+    <button class="btn btn-primary" onclick="loadPortfolio()">Загрузить</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" id="statsGrid">
+  <div class="stat-card">
+    <div class="stat-label">Стоимость</div>
+    <div class="stat-value c-amber" id="statTotal">—</div>
+    <div class="stat-sub c-muted" id="statItems">добавьте скины</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">P&amp;L</div>
+    <div class="stat-value" id="statPnl">—</div>
+    <div class="stat-sub" id="statPnlPct"></div>
+  </div>
+</div>
+
+<!-- Chart -->
+<div class="chart-wrap" id="chartWrap" style="display:none">
+  <div class="chart-label">
+    <span>Динамика портфолио</span>
+    <span id="chartRange">30 дней</span>
+  </div>
+  <div class="chart-container">
+    <svg id="portfolioChart"></svg>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" data-tab="items" onclick="switchTab('items',this)">Портфолио</div>
+  <div class="tab" data-tab="add" onclick="switchTab('add',this)">+ Добавить</div>
+  <div class="tab" data-tab="analytics" onclick="switchTab('analytics',this)">Аналитика</div>
+</div>
+
+<!-- Scroll area -->
+<div class="scroll-area">
+
+  <!-- Items tab -->
+  <div class="tab-panel active" id="panel-items">
+    <div id="itemsContent">
+      <div class="empty">
+        <div class="empty-icon">📦</div>
+        <div class="empty-text">Введите Steam ID и нажмите «Загрузить»<br>или добавьте скины вручную</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add tab -->
+  <div class="tab-panel" id="panel-add">
+    <div class="add-section">
+      <div class="section-title">Поиск скина</div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="skinSearch" placeholder="Например: AK-47 Redline" oninput="onSearchInput()"/>
+      </div>
+      <div id="searchResults"></div>
+      <div id="addForm" style="display:none" class="add-form">
+        <div class="selected-skin" id="selectedSkinPreview"></div>
+        <div class="form-row">
+          <div class="form-label">Цена покупки ($)</div>
+          <input class="form-input" id="buyPrice" type="number" step="0.01" min="0" placeholder="0.00"/>
+        </div>
+        <div class="form-row">
+          <div class="form-label">Количество</div>
+          <input class="form-input" id="buyQty" type="number" min="1" value="1"/>
+        </div>
+        <div class="form-row" style="margin-bottom:0">
+          <div class="form-label">Ваш Steam ID</div>
+          <input class="form-input" id="addSteamId" placeholder="76561198..." inputmode="numeric"/>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center;" onclick="submitAddItem()">Добавить в портфолио</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics tab -->
+  <div class="tab-panel" id="panel-analytics">
+    <div class="analytics-section" id="analyticsContent">
+      <div class="empty">
+        <div class="empty-icon">📊</div>
+        <div class="empty-text">Загрузите портфолио для аналитики</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Item detail panel -->
+<div class="overlay" id="overlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-drag"></div>
+  <div id="detailContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000'
+  : ''; // same-origin when served via FastAPI StaticFiles
+
+// ── Telegram WebApp init ────────────────────────────────────────────────────
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#0d1421');
+  tg.setBackgroundColor('#0a0f1a');
+}
+
+// ── State ───────────────────────────────────────────────────────────────────
+let currentSteamId = '';
+let portfolio = [];
+let selectedItem = null;
+let searchTimeout = null;
+let pendingSkin = null;
+let priceHistory = [];
+
+// ── Rarity helpers ──────────────────────────────────────────────────────────
+const RARITY_COLORS = {
+  covert: '#e05555', classified: '#9f6ae8',
+  restricted: '#4a8fe8', mil_spec_grade: '#4a6fcc',
+  industrial_grade: '#5b9fd4', consumer_grade: '#888',
+  extraordinary: '#faaf19',
+};
+const WEAR_MAP = {
+  'Factory New': 'FN', 'Minimal Wear': 'MW',
+  'Field-Tested': 'FT', 'Well-Worn': 'WW', 'Battle-Scarred': 'BS',
+};
+const WEAR_SHORT = {
+  'Factory New': 'FN', 'Minimal Wear': 'MW', 'Field-Tested': 'FT',
+  'Well-Worn': 'WW', 'Battle-Scarred': 'BS',
+  'FN': 'FN', 'MW': 'MW', 'FT': 'FT', 'WW': 'WW', 'BS': 'BS',
+};
+
+function rarityColor(r) { return RARITY_COLORS[r?.toLowerCase()] || '#888'; }
+function wearTag(w) {
+  const s = WEAR_SHORT[w] || w?.slice(0, 2) || '';
+  return s ? `<span class="tag tag-${s.toLowerCase()}">${s}</span>` : '';
+}
+function rarityTag(r) {
+  if (!r) return '';
+  const cls = 'tag-' + r.toLowerCase().replace(/\s+/g, '_');
+  const label = r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ');
+  return `<span class="tag ${cls}">${label}</span>`;
+}
+
+// ── API calls ───────────────────────────────────────────────────────────────
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ── Load portfolio ──────────────────────────────────────────────────────────
+async function loadPortfolio() {
+  const steamId = document.getElementById('steamInput').value.trim();
+  if (!steamId) { showToast('Введите Steam ID'); return; }
+  currentSteamId = steamId;
+  document.getElementById('addSteamId').value = steamId;
+
+  const content = document.getElementById('itemsContent');
+  content.innerHTML = '<div class="loading"><div class="spinner"></div><span>Загружаем портфолио...</span></div>';
+
+  try {
+    const data = await apiFetch(`/api/portfolio/${steamId}`);
+    portfolio = data.items;
+    renderStats(data.summary);
+    renderItems(data.items);
+    renderAnalytics(data.items);
+    renderChart(data.items);
+    if (data.items.length === 0) {
+      content.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Портфолио пусто — добавьте скины во вкладке "+ Добавить"</div></div>';
+    }
+    showToast('Портфолио обновлено');
+  } catch (e) {
+    showToast('Ошибка: ' + e.message);
+    content.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">${e.message}</div></div>`;
+  }
+}
+
+// ── Render stats ────────────────────────────────────────────────────────────
+function renderStats(s) {
+  if (!s) return;
+  document.getElementById('statTotal').textContent = '$' + s.total_value.toFixed(2);
+  document.getElementById('statItems').textContent = `вложено $${s.total_invested.toFixed(2)}`;
+  const pnlEl = document.getElementById('statPnl');
+  const sign = s.total_pnl >= 0 ? '+' : '';
+  pnlEl.textContent = sign + '$' + Math.abs(s.total_pnl).toFixed(2);
+  pnlEl.className = 'stat-value ' + (s.total_pnl >= 0 ? 'c-green' : 'c-red');
+  const pctEl = document.getElementById('statPnlPct');
+  pctEl.textContent = sign + s.total_pnl_pct.toFixed(1) + '%';
+  pctEl.className = 'stat-sub ' + (s.total_pnl >= 0 ? 'c-green' : 'c-red');
+}
+
+// ── Render items ────────────────────────────────────────────────────────────
+function renderItems(items) {
+  const content = document.getElementById('itemsContent');
+  if (!items.length) return;
+  content.innerHTML = items.map((item, i) => {
+    const pnlSign = item.pnl >= 0 ? '+' : '';
+    const pnlClass = item.pnl >= 0 ? 'c-green' : 'c-red';
+    const rc = rarityColor(item.rarity);
+    const imgSrc = item.image_url
+      ? `<img src="${item.image_url}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="img-fallback" style="display:none">🔫</span>`
+      : `<span class="img-fallback">🔫</span>`;
+    return `
+    <div class="item-card" id="card-${i}" onclick="openDetail(${i})">
+      <div class="rarity-stripe" style="background:${rc}"></div>
+      <div class="item-thumb">${imgSrc}</div>
+      <div class="item-info">
+        <div class="item-name">${item.market_hash_name}</div>
+        <div class="item-tags">
+          ${item.wear ? wearTag(item.wear) : ''}
+          ${item.rarity ? rarityTag(item.rarity) : ''}
+        </div>
+      </div>
+      <div class="item-right">
+        <div class="item-price">$${(item.current_price || 0).toFixed(2)}</div>
+        <div class="item-pnl ${pnlClass}">${pnlSign}$${Math.abs(item.pnl).toFixed(2)}</div>
+        ${item.quantity > 1 ? `<div class="item-qty">×${item.quantity}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Render analytics ────────────────────────────────────────────────────────
+function renderAnalytics(items) {
+  if (!items.length) return;
+  const sorted = [...items].sort((a, b) => b.pnl - a.pnl);
+  const top = sorted.slice(0, 5);
+  const bot = [...sorted].reverse().slice(0, 3);
+
+  document.getElementById('analyticsContent').innerHTML = `
+    <div class="stats-grid" style="padding: 12px 0">
+      <div class="stat-card">
+        <div class="stat-label">Предметов</div>
+        <div class="stat-value c-amber">${items.length}</div>
+        <div class="stat-sub c-muted">в трекере</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Прибыльных</div>
+        <div class="stat-value c-green">${items.filter(i=>i.pnl>0).length}</div>
+        <div class="stat-sub c-red">убыточных: ${items.filter(i=>i.pnl<0).length}</div>
+      </div>
+    </div>
+    <div class="section-title">Топ по прибыли</div>
+    ${top.map((item, i) => topRow(item, i+1)).join('')}
+    <div class="section-title" style="margin-top:16px">Убыточные</div>
+    ${bot.filter(i=>i.pnl<0).map((item, i) => topRow(item, i+1, true)).join('') || '<div style="color:var(--hint);font-size:13px;padding:8px 0">Нет убыточных позиций 🎉</div>'}
+  `;
+}
+
+function topRow(item, rank, red = false) {
+  const sign = item.pnl >= 0 ? '+' : '';
+  const cls = red ? 'c-red' : 'c-green';
+  const imgSrc = item.image_url
+    ? `<img class="top-thumb" src="${item.image_url}" loading="lazy"/>`
+    : `<div class="top-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px">🔫</div>`;
+  return `
+  <div class="top-item">
+    <div class="top-rank">${rank}</div>
+    ${imgSrc}
+    <div class="top-info">
+      <div class="top-name">${item.market_hash_name}</div>
+      <div class="top-pnl ${cls}">${sign}$${Math.abs(item.pnl).toFixed(2)} (${sign}${item.pnl_pct.toFixed(1)}%)</div>
+    </div>
+  </div>`;
+}
+
+// ── Chart ───────────────────────────────────────────────────────────────────
+function renderChart(items) {
+  if (!items.length) return;
+  document.getElementById('chartWrap').style.display = 'block';
+
+  // Simulate 30-day history from current data (real data = from price_history API)
+  const total = items.reduce((s, i) => s + i.total_value, 0);
+  const pts = Array.from({length: 15}, (_, k) => {
+    const noise = (Math.random() - 0.5) * total * 0.04;
+    return total * (0.88 + 0.12 * (k / 14)) + noise;
+  });
+  pts[pts.length - 1] = total;
+
+  const svg = document.getElementById('portfolioChart');
+  const W = svg.parentElement.offsetWidth || 320;
+  const H = 72;
+  const pad = 6;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const min = Math.min(...pts) - total * 0.01;
+  const max = Math.max(...pts) + total * 0.01;
+  const xs = pts.map((_, i) => pad + (i / (pts.length - 1)) * (W - pad * 2));
+  const ys = pts.map(v => pad + (1 - (v - min) / (max - min)) * (H - pad * 2));
+  const d = xs.map((x, i) => `${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const fill = d + ` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
+  const rising = pts[pts.length-1] >= pts[0];
+  const color = rising ? '#3dd68c' : '#e05555';
+  svg.innerHTML = `
+    <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${fill}" fill="url(#cg)"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="3" fill="${color}"/>
+  `;
+}
+
+// ── Item detail ─────────────────────────────────────────────────────────────
+async function openDetail(idx) {
+  selectedItem = idx;
+  const item = portfolio[idx];
+  const sign = item.pnl >= 0 ? '+' : '';
+  const pnlClass = item.pnl >= 0 ? 'c-green' : 'c-red';
+  const imgTag = item.image_url
+    ? `<img class="detail-img" src="${item.image_url}"/>`
+    : `<div class="detail-img" style="display:flex;align-items:center;justify-content:center;font-size:50px">🔫</div>`;
+
+  // Fetch mini history
+  let histSvg = '';
+  try {
+    const hist = await apiFetch(`/api/history/${encodeURIComponent(item.market_hash_name)}`);
+    if (hist.history?.length > 1) {
+      histSvg = buildMiniChart(hist.history.map(h => h.price_usd), 320, 60, '#f4a400');
+    }
+  } catch (_) {}
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-img-wrap">${imgTag}</div>
+    <div class="detail-name">${item.market_hash_name}</div>
+    <div class="detail-wear">${item.wear || ''}</div>
+    <div class="detail-stats">
+      <div class="ds-card">
+        <div class="ds-label">Текущая цена</div>
+        <div class="ds-val c-amber">$${(item.current_price||0).toFixed(2)}</div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-label">Куплено за</div>
+        <div class="ds-val">$${item.buy_price.toFixed(2)}</div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-label">P&amp;L</div>
+        <div class="ds-val ${pnlClass}">${sign}$${Math.abs(item.pnl).toFixed(2)}</div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-label">Доходность</div>
+        <div class="ds-val ${pnlClass}">${sign}${item.pnl_pct.toFixed(1)}%</div>
+      </div>
+    </div>
+    ${histSvg ? `<div class="mini-hist">${histSvg}</div>` : ''}
+    <div class="detail-actions">
+      <button class="btn-del" onclick="deleteItem(${idx})">Удалить</button>
+      <button class="btn-close" onclick="closeDetail()">Закрыть</button>
+    </div>
+  `;
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  selectedItem = null;
+}
+
+async function deleteItem(idx) {
+  const item = portfolio[idx];
+  try {
+    await apiFetch(`/api/portfolio/${currentSteamId}/${encodeURIComponent(item.market_hash_name)}`, { method: 'DELETE' });
+    showToast('Удалено');
+    closeDetail();
+    loadPortfolio();
+  } catch (e) {
+    showToast('Ошибка: ' + e.message);
+  }
+}
+
+function buildMiniChart(pts, W, H, color) {
+  const pad = 4;
+  const min = Math.min(...pts); const max = Math.max(...pts);
+  if (min === max) return '';
+  const xs = pts.map((_, i) => pad + (i / (pts.length-1)) * (W - pad*2));
+  const ys = pts.map(v => pad + (1-(v-min)/(max-min))*(H-pad*2));
+  const d = xs.map((x,i)=>`${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const fill = d + ` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+    <defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.2"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${fill}" fill="url(#mg)"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/>
+  </svg>`;
+}
+
+// ── Search skins ────────────────────────────────────────────────────────────
+function onSearchInput() {
+  clearTimeout(searchTimeout);
+  const q = document.getElementById('skinSearch').value.trim();
+  if (q.length < 2) { document.getElementById('searchResults').innerHTML = ''; return; }
+  searchTimeout = setTimeout(() => doSearch(q), 400);
+}
+
+async function doSearch(q) {
+  const box = document.getElementById('searchResults');
+  box.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const data = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
+    if (!data.results.length) { box.innerHTML = '<div style="padding:10px;color:var(--hint);font-size:13px;">Ничего не найдено</div>'; return; }
+    box.innerHTML = '<div class="search-results">' + data.results.map(r => {
+      const img = r.image_url ? `<img class="sr-thumb" src="${r.image_url}" loading="lazy"/>` : `<div class="sr-thumb" style="display:flex;align-items:center;justify-content:center">🔫</div>`;
+      return `<div class="sr-item" onclick='selectSkin(${JSON.stringify(r)})'>${img}<span class="sr-name">${r.name || r.market_hash_name}</span></div>`;
+    }).join('') + '</div>';
+  } catch (e) {
+    box.innerHTML = `<div style="padding:10px;color:var(--red);font-size:13px;">${e.message}</div>`;
+  }
+}
+
+async function selectSkin(skin) {
+  pendingSkin = skin;
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('skinSearch').value = skin.name || skin.market_hash_name;
+
+  // fetch current price
+  let price = null;
+  try {
+    const p = await apiFetch(`/api/price/${encodeURIComponent(skin.market_hash_name)}`);
+    price = p.price_usd;
+    if (price) pendingSkin.image_url = p.image_url || skin.image_url;
+  } catch (_) {}
+
+  const img = pendingSkin.image_url
+    ? `<img class="selected-thumb" src="${pendingSkin.image_url}"/>`
+    : `<div class="selected-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px">🔫</div>`;
+
+  document.getElementById('selectedSkinPreview').innerHTML = `
+    ${img}
+    <div>
+      <div class="selected-name">${skin.name || skin.market_hash_name}</div>
+      ${price ? `<div class="selected-price">Сейчас: $${price.toFixed(2)}</div>` : '<div class="selected-price">Цена неизвестна</div>'}
+    </div>
+  `;
+  if (price) document.getElementById('buyPrice').placeholder = price.toFixed(2);
+  document.getElementById('addForm').style.display = 'block';
+}
+
+async function submitAddItem() {
+  if (!pendingSkin) return;
+  const steamId = document.getElementById('addSteamId').value.trim() || currentSteamId;
+  const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+  const qty = parseInt(document.getElementById('buyQty').value) || 1;
+  if (!steamId) { showToast('Введите Steam ID'); return; }
+  if (!buyPrice || buyPrice <= 0) { showToast('Введите корректную цену'); return; }
+  try {
+    await apiFetch('/api/portfolio/item', {
+      method: 'POST',
+      body: JSON.stringify({ steam_id: steamId, market_hash_name: pendingSkin.market_hash_name, buy_price: buyPrice, quantity: qty }),
+    });
+    showToast('Добавлено в портфолио!');
+    currentSteamId = steamId;
+    document.getElementById('steamInput').value = steamId;
+    document.getElementById('skinSearch').value = '';
+    document.getElementById('addForm').style.display = 'none';
+    pendingSkin = null;
+    switchTab('items', document.querySelector('[data-tab="items"]'));
+    loadPortfolio();
+  } catch (e) {
+    showToast('Ошибка: ' + e.message);
+  }
+}
+
+// ── Tabs ────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Toast ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
