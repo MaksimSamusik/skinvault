@@ -5,229 +5,553 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
 <title>SkinVault</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --bg: #080c14;
-  --surface: #0d1220;
-  --surface2: #111827;
-  --surface3: #162030;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
-  --text: #e8eaf0;
-  --muted: #7a8aaa;
-  --hint: #3d5070;
-  --amber: #f4a400;
-  --amber2: #ffbe3d;
-  --amber-dim: rgba(244,164,0,0.1);
-  --green: #2ecc7a;
-  --green-dim: rgba(46,204,122,0.1);
-  --red: #e05555;
-  --red-dim: rgba(224,85,85,0.1);
-  --purple: #7c5cfc;
-  --purple2: #9f7fff;
-  --purple-dim: rgba(124,92,252,0.12);
-  --blue: #3b8ef0;
-  --radius: 12px;
-  --radius-lg: 16px;
+  --bg:       #060912;
+  --bg1:      #0a0e1a;
+  --bg2:      #0e1423;
+  --bg3:      #131b2e;
+  --bg4:      #182038;
+  --line:     rgba(255,255,255,0.055);
+  --line2:    rgba(255,255,255,0.10);
+  --line3:    rgba(255,255,255,0.16);
+  --text:     #cdd6f4;
+  --text2:    #a6b0cf;
+  --muted:    #4a5568;
+  --muted2:   #2d3748;
+  --green:    #a6e3a1;
+  --green2:   #00c97b;
+  --green-bg: rgba(166,227,161,0.08);
+  --red:      #f38ba8;
+  --red2:     #ff4466;
+  --red-bg:   rgba(243,139,168,0.08);
+  --amber:    #f9c74f;
+  --amber2:   #ffb300;
+  --amber-bg: rgba(249,199,79,0.08);
+  --blue:     #89b4fa;
+  --blue-bg:  rgba(137,180,250,0.08);
+  --purple:   #cba6f7;
+  --purple-bg:rgba(203,166,247,0.08);
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+  --r: 8px;
+  --r2: 12px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; overscroll-behavior: none; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 13px; overscroll-behavior: none; }
 body { display: flex; flex-direction: column; }
 
-/* ── Header ── */
-.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px 10px; flex-shrink: 0; }
-.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.logo { display: flex; align-items: center; gap: 8px; }
-.logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg,#f4a400,#ff6b00); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; }
-.logo-text { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
-.logo-text span { color: var(--amber); }
-.logo-badge { background: var(--purple-dim); color: var(--purple2); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; border: 1px solid rgba(124,92,252,0.2); }
-.live-dot { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--green); }
-.live-dot::before { content:''; width:6px; height:6px; background:var(--green); border-radius:50%; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
-.steam-row { display: flex; gap: 8px; }
-.steam-input { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:9px 12px; color:var(--text); font-size:13px; outline:none; font-family:inherit; transition: border-color .2s; }
-.steam-input:focus { border-color: var(--amber); }
-.steam-input::placeholder { color:var(--hint); }
-.btn-load { background:linear-gradient(135deg,#f4a400,#e07b00); color:#000; border:none; border-radius:10px; padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; font-family:inherit; transition:opacity .15s,transform .1s; }
-.btn-load:active { opacity:.85; transform:scale(.97); }
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 2px; }
 
-/* ── Career banner ── */
+/* ─── HEADER ─── */
+.header {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 14px 8px;
+  flex-shrink: 0;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.logo { display: flex; align-items: center; gap: 9px; }
+.logo-icon {
+  width: 26px; height: 26px;
+  background: var(--amber2);
+  clip-path: polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 700; color: #000;
+}
+.logo-text {
+  font-family: var(--mono);
+  font-size: 13px; font-weight: 700; letter-spacing: 1px; color: var(--text);
+}
+.logo-text span { color: var(--amber); }
+.logo-badge {
+  font-family: var(--mono);
+  font-size: 9px; font-weight: 600;
+  padding: 2px 6px; border-radius: 3px;
+  border: 1px solid var(--muted2);
+  color: var(--muted); letter-spacing: 1px;
+}
+.live-dot {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 10px; color: var(--green); letter-spacing: 0.5px;
+}
+.live-dot::before {
+  content: ''; width: 5px; height: 5px;
+  background: var(--green2); border-radius: 50%;
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+.steam-row { display: flex; gap: 6px; }
+.steam-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: var(--r);
+  padding: 8px 11px;
+  color: var(--text);
+  font-size: 12px; font-family: var(--mono);
+  outline: none;
+  transition: border-color .2s;
+}
+.steam-input:focus { border-color: var(--amber); }
+.steam-input::placeholder { color: var(--muted); }
+.btn-load {
+  background: var(--amber2);
+  color: #000;
+  border: none;
+  border-radius: var(--r);
+  padding: 8px 14px;
+  font-size: 12px; font-weight: 700; font-family: var(--sans);
+  cursor: pointer; letter-spacing: 0.3px;
+  transition: opacity .15s, transform .1s;
+}
+.btn-load:active { opacity: .8; transform: scale(.97); }
+
+/* ─── CAREER BANNER ─── */
 .career-banner {
-  margin: 10px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  margin: 8px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: var(--r2);
   overflow: hidden;
   position: relative;
   cursor: pointer;
+  transition: border-color .2s;
 }
+.career-banner:active { border-color: var(--amber); }
 .career-banner::before {
-  content:'';
-  position:absolute; inset:0;
-  background: var(--banner-glow, linear-gradient(135deg, rgba(124,92,252,0.08) 0%, transparent 60%));
-  pointer-events:none;
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--banner-glow, transparent);
+  pointer-events: none;
 }
-.career-inner { display:flex; align-items:center; gap:0; }
-.career-char { width:90px; height:90px; flex-shrink:0; position:relative; }
-.career-char svg { width:100%; height:100%; }
-.career-info { flex:1; padding:12px 12px 12px 4px; }
-.career-rank-label { font-size:10px; color:var(--hint); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:2px; }
-.career-rank-name { font-size:17px; font-weight:700; margin-bottom:6px; }
-.career-progress-wrap { position:relative; }
-.career-progress-bg { height:5px; background:var(--surface3); border-radius:3px; overflow:hidden; }
-.career-progress-fill { height:100%; border-radius:3px; transition:width .6s ease; }
-.career-progress-labels { display:flex; justify-content:space-between; margin-top:4px; }
-.career-progress-pct { font-size:11px; font-weight:600; }
-.career-progress-next { font-size:10px; color:var(--hint); }
-.career-xp-badge { position:absolute; right:12px; top:12px; font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px; }
+.career-inner { display: flex; align-items: center; }
+.career-char { width: 80px; height: 80px; flex-shrink: 0; }
+.career-char svg { width: 100%; height: 100%; }
+.career-info { flex: 1; padding: 10px 12px 10px 2px; }
+.career-rank-label {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;
+}
+.career-rank-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.career-progress-wrap { }
+.career-progress-bg {
+  height: 3px; background: var(--bg4); border-radius: 2px; overflow: hidden;
+}
+.career-progress-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
+.career-progress-labels { display: flex; justify-content: space-between; margin-top: 4px; }
+.career-progress-pct { font-family: var(--mono); font-size: 10px; font-weight: 600; }
+.career-progress-next { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.career-xp-badge {
+  position: absolute; right: 10px; top: 10px;
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  padding: 3px 7px; border-radius: 4px;
+}
 
-/* ── Stats ── */
-.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 16px 10px; flex-shrink:0; }
-.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; }
-.stat-label { font-size:10px; color:var(--hint); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
-.stat-value { font-size:19px; font-weight:700; line-height:1; }
-.stat-sub { font-size:10px; margin-top:3px; }
-.c-amber { color:var(--amber); }
-.c-green { color:var(--green); }
-.c-red { color:var(--red); }
-.c-muted { color:var(--muted); }
-.c-purple { color:var(--purple2); }
+/* ─── STATS GRID ─── */
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 6px; padding: 0 14px 8px; flex-shrink: 0;
+}
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 10px 12px;
+}
+.stat-label {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 5px;
+}
+.stat-value { font-size: 20px; font-weight: 700; line-height: 1; }
+.stat-sub { font-family: var(--mono); font-size: 10px; margin-top: 3px; }
+.c-amber { color: var(--amber); }
+.c-green { color: var(--green2); }
+.c-red   { color: var(--red2); }
+.c-muted { color: var(--muted); }
+.c-purple{ color: var(--purple); }
+.c-blue  { color: var(--blue); }
 
-/* ── Chart ── */
-.chart-wrap { padding:0 16px 8px; flex-shrink:0; display:none; }
-.chart-label { font-size:11px; color:var(--hint); margin-bottom:6px; display:flex; justify-content:space-between; }
-.chart-container { height:68px; }
-#portfolioChart { width:100%; height:100%; }
+/* ─── CHART ─── */
+.chart-wrap { padding: 0 14px 8px; flex-shrink: 0; display: none; }
+.chart-label {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--muted); margin-bottom: 5px;
+  display: flex; justify-content: space-between;
+}
+.chart-container { height: 60px; }
+#portfolioChart { width: 100%; height: 100%; }
 
-/* ── Tabs ── */
-.tabs { display:flex; border-bottom:1px solid var(--border); flex-shrink:0; }
-.tab { flex:1; padding:10px 0; text-align:center; font-size:12px; font-weight:500; color:var(--hint); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .15s; }
-.tab.active { color:var(--amber); border-bottom-color:var(--amber); }
-.scroll-area { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-.tab-panel { display:none; padding-bottom:80px; }
-.tab-panel.active { display:block; }
+/* ─── TABS ─── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+  background: var(--bg1);
+}
+.tab {
+  flex: 1; padding: 9px 0;
+  text-align: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.3px;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .15s;
+}
+.tab.active { color: var(--amber); border-bottom-color: var(--amber); }
 
-/* ── Items ── */
-.items-header { padding:10px 16px 6px; display:flex; justify-content:space-between; align-items:center; }
-.items-header-title { font-size:11px; color:var(--hint); text-transform:uppercase; letter-spacing:0.5px; }
-.items-count { font-size:11px; color:var(--purple2); background:var(--purple-dim); padding:2px 8px; border-radius:10px; }
-.item-card { display:flex; align-items:center; gap:10px; padding:9px 16px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
-.item-card:active { background:var(--surface); }
-.item-card.untracked { opacity:0.55; }
-.item-card.selected { background:var(--amber-dim); }
-.rarity-stripe { width:3px; height:44px; border-radius:3px; flex-shrink:0; }
-.item-thumb { width:60px; height:44px; border-radius:8px; background:var(--surface2); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.item-thumb img { width:100%; height:100%; object-fit:contain; }
-.item-thumb .img-fallback { font-size:24px; }
-.item-info { flex:1; min-width:0; }
-.item-name { font-size:12px; font-weight:600; color:#d0d8ec; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.item-tags { display:flex; gap:3px; margin-top:3px; flex-wrap:wrap; }
-.tag { font-size:9px; padding:1px 5px; border-radius:4px; font-weight:600; }
-.tag-covert { background:rgba(224,85,85,.15); color:#e07070; }
-.tag-classified { background:rgba(159,127,255,.12); color:#b09af0; }
-.tag-restricted { background:rgba(59,142,240,.12); color:#70a8f0; }
-.tag-mil_spec_grade,.tag-industrial_grade { background:rgba(59,142,240,.1); color:#6090cc; }
-.tag-fn { background:rgba(46,204,122,.12); color:#60cc90; }
-.tag-mw { background:rgba(46,204,122,.1); color:#50b878; }
-.tag-ft { background:rgba(244,164,0,.1); color:#c8a030; }
-.tag-ww,.tag-bs { background:rgba(224,85,85,.1); color:#b06060; }
-.item-right { text-align:right; flex-shrink:0; }
-.item-price { font-size:13px; font-weight:700; }
-.item-pnl { font-size:10px; margin-top:2px; }
-.item-qty { font-size:10px; color:var(--hint); margin-top:1px; }
+.scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.tab-panel { display: none; padding-bottom: 80px; }
+.tab-panel.active { display: block; }
 
-/* ── Detail panel ── */
-.detail-panel { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border2); border-radius:20px 20px 0 0; padding:0 16px 36px; transform:translateY(100%); transition:transform .28s cubic-bezier(.32,.72,0,1); z-index:100; max-height:80vh; overflow-y:auto; }
-.detail-panel.open { transform:translateY(0); }
-.detail-drag { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:12px auto 16px; }
-.detail-img-wrap { display:flex; justify-content:center; margin-bottom:12px; }
-.detail-img { width:160px; height:110px; object-fit:contain; background:var(--surface2); border-radius:12px; }
-.detail-name { font-size:15px; font-weight:700; text-align:center; margin-bottom:4px; }
-.detail-wear { text-align:center; font-size:12px; color:var(--hint); margin-bottom:14px; }
-.detail-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-.ds-card { background:var(--surface2); border-radius:10px; padding:10px 12px; }
-.ds-label { font-size:10px; color:var(--hint); text-transform:uppercase; letter-spacing:0.4px; }
-.ds-val { font-size:16px; font-weight:700; margin-top:3px; }
-.mini-hist { height:56px; margin-bottom:14px; }
-.mini-hist svg { width:100%; height:100%; }
-.detail-actions { display:flex; gap:8px; }
-.btn-del { flex:1; background:var(--red-dim); color:var(--red); border:1px solid rgba(224,85,85,.2); border-radius:10px; padding:11px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
-.btn-close { flex:1; background:var(--surface2); color:var(--muted); border:1px solid var(--border); border-radius:10px; padding:11px; font-size:13px; cursor:pointer; font-family:inherit; }
-.btn-track { flex:1; background:linear-gradient(135deg,#f4a400,#e07b00); color:#000; border:none; border-radius:10px; padding:11px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+/* ─── ITEMS ─── */
+.items-header {
+  padding: 9px 14px 5px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+.items-header-title {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px;
+}
+.items-count {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--blue);
+  background: var(--blue-bg);
+  padding: 2px 8px; border-radius: 4px;
+  border: 1px solid rgba(137,180,250,0.15);
+}
 
-/* ── Add tab ── */
-.add-section { padding:12px 16px; }
-.section-title { font-size:10px; color:var(--hint); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:8px; font-weight:600; }
-.search-wrap { position:relative; margin-bottom:8px; }
-.search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; }
-.search-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:9px 12px 9px 34px; color:var(--text); font-size:13px; outline:none; font-family:inherit; transition:border-color .2s; }
-.search-input:focus { border-color:var(--amber); }
-.search-results { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:4px; }
-.sr-item { display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .1s; }
-.sr-item:last-child { border-bottom:none; }
-.sr-item:active { background:var(--surface2); }
-.sr-thumb { width:44px; height:32px; background:var(--surface2); border-radius:6px; object-fit:contain; flex-shrink:0; }
-.sr-name { font-size:12px; color:var(--text); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.add-form { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-top:8px; }
-.form-row { margin-bottom:10px; }
-.form-label { font-size:10px; color:var(--hint); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.4px; font-weight:600; }
-.form-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 11px; color:var(--text); font-size:14px; outline:none; font-family:inherit; transition:border-color .2s; }
-.form-input:focus { border-color:var(--amber); }
-.selected-skin { display:flex; align-items:center; gap:10px; padding:8px 0; margin-bottom:8px; }
-.selected-thumb { width:52px; height:38px; border-radius:6px; object-fit:contain; background:var(--surface2); }
-.selected-name { font-size:13px; font-weight:600; }
-.selected-price { font-size:11px; color:var(--hint); margin-top:2px; }
-.btn-add-submit { width:100%; margin-top:12px; background:linear-gradient(135deg,#f4a400,#e07b00); color:#000; border:none; border-radius:10px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+/* TABLE-STYLE ITEM ROW */
+.item-card {
+  display: grid;
+  grid-template-columns: 3px 52px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .1s;
+}
+.item-card:active { background: rgba(255,255,255,0.03); }
+.item-card.untracked { opacity: 0.45; }
+.item-card.selected { background: var(--amber-bg); }
+.rarity-stripe { width: 3px; height: 36px; border-radius: 2px; flex-shrink: 0; }
+.item-thumb {
+  width: 52px; height: 36px;
+  border-radius: 5px;
+  background: var(--bg3);
+  flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.item-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.item-thumb .img-fallback { font-size: 20px; }
+.item-info { min-width: 0; }
+.item-name {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.item-tags { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; }
+.tag {
+  font-family: var(--mono); font-size: 8px;
+  padding: 1px 5px; border-radius: 3px; font-weight: 600; letter-spacing: 0.5px;
+}
+.tag-covert        { background: rgba(243,139,168,.12); color: #f38ba8; border: 1px solid rgba(243,139,168,.2); }
+.tag-classified    { background: rgba(203,166,247,.10); color: #cba6f7; border: 1px solid rgba(203,166,247,.2); }
+.tag-restricted    { background: rgba(137,180,250,.10); color: #89b4fa; border: 1px solid rgba(137,180,250,.2); }
+.tag-mil_spec_grade,.tag-industrial_grade { background: rgba(137,180,250,.07); color: #6a9fd8; border: 1px solid rgba(137,180,250,.12); }
+.tag-fn  { background: rgba(166,227,161,.10); color: #a6e3a1; border: 1px solid rgba(166,227,161,.2); }
+.tag-mw  { background: rgba(166,227,161,.07); color: #89c884; border: 1px solid rgba(166,227,161,.12); }
+.tag-ft  { background: rgba(249,199,79,.08);  color: #c9a040; border: 1px solid rgba(249,199,79,.15); }
+.tag-ww,.tag-bs { background: rgba(243,139,168,.07); color: #b07070; border: 1px solid rgba(243,139,168,.12); }
 
-/* ── Career tab ── */
-.career-section { padding:12px 16px; }
-.rank-track { display:flex; align-items:center; gap:0; margin-bottom:16px; position:relative; }
-.rank-node { display:flex; flex-direction:column; align-items:center; position:relative; flex:1; }
-.rank-circle { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; position:relative; z-index:1; transition:transform .2s; }
-.rank-circle.done { background:var(--green); box-shadow:0 0 12px rgba(46,204,122,.4); }
-.rank-circle.current { background:linear-gradient(135deg,#f4a400,#e07b00); box-shadow:0 0 16px rgba(244,164,0,.5); transform:scale(1.15); }
-.rank-circle.locked { background:var(--surface3); border:1px solid var(--border); }
-.rank-connector { position:absolute; top:18px; left:50%; right:-50%; height:2px; z-index:0; }
-.rank-label { font-size:9px; color:var(--hint); margin-top:5px; text-align:center; font-weight:600; }
-.rank-label.current-label { color:var(--amber); }
-.career-char-big { display:flex; justify-content:center; margin:4px 0 16px; }
-.career-char-big svg { filter:drop-shadow(0 8px 24px rgba(0,0,0,.5)); }
-.career-tasks { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
-.task-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:11px 13px; display:flex; align-items:center; gap:10px; }
-.task-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
-.task-icon.done-icon { background:var(--green-dim); }
-.task-icon.pending-icon { background:var(--amber-dim); }
-.task-icon.locked-icon { background:var(--surface3); }
-.task-info { flex:1; }
-.task-name { font-size:12px; font-weight:600; }
-.task-prog { font-size:10px; color:var(--hint); margin-top:2px; }
-.task-bar { height:3px; background:var(--surface3); border-radius:2px; margin-top:5px; overflow:hidden; }
-.task-bar-fill { height:100%; border-radius:2px; transition:width .5s ease; }
+.item-right { text-align: right; flex-shrink: 0; }
+.item-price { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text); }
+.item-pnl { font-family: var(--mono); font-size: 10px; margin-top: 2px; }
+.item-qty { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 1px; }
 
-/* ── Analytics ── */
-.analytics-section { padding:12px 16px; }
-.top-item { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
-.top-item:last-child { border-bottom:none; }
-.top-rank { width:20px; font-size:12px; font-weight:700; color:var(--hint); flex-shrink:0; }
-.top-thumb { width:48px; height:35px; border-radius:6px; object-fit:contain; background:var(--surface2); flex-shrink:0; }
-.top-info { flex:1; min-width:0; }
-.top-name { font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.top-pnl { font-size:11px; margin-top:2px; }
+/* ─── DETAIL PANEL ─── */
+.detail-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--line2);
+  border-radius: 14px 14px 0 0;
+  padding: 0 16px 36px;
+  transform: translateY(100%);
+  transition: transform .28s cubic-bezier(.32,.72,0,1);
+  z-index: 100; max-height: 80vh; overflow-y: auto;
+}
+.detail-panel.open { transform: translateY(0); }
+.detail-drag {
+  width: 32px; height: 3px;
+  background: var(--muted2); border-radius: 2px;
+  margin: 10px auto 14px;
+}
+.detail-img-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+.detail-img {
+  width: 150px; height: 100px;
+  object-fit: contain;
+  background: var(--bg3); border-radius: var(--r);
+  border: 1px solid var(--line);
+}
+.detail-name { font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 3px; }
+.detail-wear { text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+.detail-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+.ds-card {
+  background: var(--bg3);
+  border: 1px solid var(--line);
+  border-radius: var(--r); padding: 9px 11px;
+}
+.ds-label { font-family: var(--mono); font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.ds-val { font-family: var(--mono); font-size: 15px; font-weight: 700; margin-top: 3px; }
+.mini-hist { height: 52px; margin-bottom: 12px; }
+.mini-hist svg { width: 100%; height: 100%; }
+.detail-actions { display: flex; gap: 6px; }
+.btn-del {
+  flex: 1; background: var(--red-bg); color: var(--red2);
+  border: 1px solid rgba(243,139,168,.18);
+  border-radius: var(--r); padding: 10px;
+  font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--sans);
+}
+.btn-close {
+  flex: 1; background: var(--bg3); color: var(--muted);
+  border: 1px solid var(--line2);
+  border-radius: var(--r); padding: 10px;
+  font-size: 12px; cursor: pointer; font-family: var(--sans);
+}
+.btn-track {
+  flex: 1; background: var(--amber2); color: #000;
+  border: none; border-radius: var(--r); padding: 10px;
+  font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--sans);
+}
 
-/* ── Misc ── */
-.empty { text-align:center; padding:40px 20px; color:var(--hint); }
-.empty-icon { font-size:38px; margin-bottom:10px; }
-.empty-text { font-size:13px; line-height:1.6; }
-.loading { display:flex; flex-direction:column; align-items:center; padding:32px; gap:10px; color:var(--hint); font-size:13px; }
-.spinner { width:22px; height:22px; border:2px solid var(--border); border-top-color:var(--amber); border-radius:50%; animation:spin .7s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-.toast { position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-60px); background:var(--surface); border:1px solid var(--border2); border-radius:10px; padding:9px 18px; font-size:13px; color:var(--text); z-index:200; transition:transform .25s ease; white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,.5); }
-.toast.show { transform:translateX(-50%) translateY(0); }
-.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:90; backdrop-filter:blur(2px); }
-.overlay.show { display:block; }
-.divider { height:1px; background:var(--border); margin:0 16px; }
+/* ─── ADD TAB ─── */
+.add-section { padding: 12px 14px; }
+.section-title {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+}
+.search-wrap { position: relative; margin-bottom: 8px; }
+.search-icon {
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%); font-size: 13px; pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: var(--r); padding: 9px 12px 9px 32px;
+  color: var(--text); font-size: 12px; font-family: var(--mono);
+  outline: none; transition: border-color .2s;
+}
+.search-input:focus { border-color: var(--amber); }
+.search-results {
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: var(--r); overflow: hidden; margin-top: 4px;
+}
+.sr-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; cursor: pointer;
+  border-bottom: 1px solid var(--line);
+  transition: background .1s;
+}
+.sr-item:last-child { border-bottom: none; }
+.sr-item:active { background: var(--bg3); }
+.sr-thumb {
+  width: 40px; height: 28px;
+  background: var(--bg3); border-radius: 4px;
+  object-fit: contain; flex-shrink: 0;
+}
+.sr-name {
+  font-size: 12px; color: var(--text);
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.add-form {
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: var(--r2); padding: 12px; margin-top: 8px;
+}
+.form-row { margin-bottom: 10px; }
+.form-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 5px; display: block;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: var(--r); padding: 8px 11px;
+  color: var(--text); font-size: 13px; font-family: var(--mono);
+  outline: none; transition: border-color .2s;
+}
+.form-input:focus { border-color: var(--amber); }
+.selected-skin { display: flex; align-items: center; gap: 10px; padding: 6px 0; margin-bottom: 8px; }
+.selected-thumb {
+  width: 48px; height: 34px;
+  border-radius: 5px; object-fit: contain;
+  background: var(--bg3);
+}
+.selected-name { font-size: 12px; font-weight: 600; }
+.selected-price { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+.btn-add-submit {
+  width: 100%; margin-top: 10px;
+  background: var(--amber2); color: #000;
+  border: none; border-radius: var(--r); padding: 11px;
+  font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans);
+  letter-spacing: 0.3px;
+  transition: opacity .15s;
+}
+.btn-add-submit:active { opacity: .85; }
+
+/* ─── CAREER TAB ─── */
+.career-section { padding: 12px 14px; }
+.rank-track {
+  display: flex; align-items: center;
+  margin-bottom: 14px; position: relative;
+}
+.rank-node {
+  display: flex; flex-direction: column; align-items: center;
+  position: relative; flex: 1;
+}
+.rank-circle {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; position: relative; z-index: 1;
+  transition: transform .2s;
+}
+.rank-circle.done { background: var(--green2); }
+.rank-circle.current {
+  background: var(--amber2);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px rgba(255,179,0,0.2);
+}
+.rank-circle.locked { background: var(--bg4); border: 1px solid var(--line2); }
+.rank-connector {
+  position: absolute; top: 17px; left: 50%; right: -50%;
+  height: 1px; z-index: 0;
+}
+.rank-label {
+  font-family: var(--mono); font-size: 8px; font-weight: 600;
+  color: var(--muted); margin-top: 5px; text-align: center; letter-spacing: 0.5px;
+}
+.rank-label.current-label { color: var(--amber); }
+.career-char-big { display: flex; justify-content: center; margin: 4px 0 14px; }
+.career-tasks { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.task-item {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.task-icon {
+  width: 26px; height: 26px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.task-icon.done-icon    { background: var(--green-bg); }
+.task-icon.pending-icon { background: var(--amber-bg); }
+.task-icon.locked-icon  { background: var(--bg4); }
+.task-info { flex: 1; }
+.task-name { font-size: 12px; font-weight: 600; }
+.task-prog { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+.task-bar {
+  height: 2px; background: var(--bg4);
+  border-radius: 1px; margin-top: 5px; overflow: hidden;
+}
+.task-bar-fill { height: 100%; border-radius: 1px; transition: width .5s ease; }
+
+/* ─── ANALYTICS ─── */
+.analytics-section { padding: 12px 14px; }
+.top-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--line);
+}
+.top-item:last-child { border-bottom: none; }
+.top-rank { width: 18px; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+.top-thumb { width: 44px; height: 32px; border-radius: 5px; object-fit: contain; background: var(--bg3); flex-shrink: 0; }
+.top-info { flex: 1; min-width: 0; }
+.top-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-pnl { font-family: var(--mono); font-size: 10px; margin-top: 2px; }
+
+/* ─── EMPTY / LOADING ─── */
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty-icon { font-size: 34px; margin-bottom: 10px; opacity: 0.6; }
+.empty-text { font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--muted); }
+.loading { display: flex; flex-direction: column; align-items: center; padding: 32px; gap: 10px; }
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid var(--muted2);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed; top: 12px; left: 50%;
+  transform: translateX(-50%) translateY(-60px);
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: var(--r);
+  padding: 8px 16px;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  z-index: 200; transition: transform .25s ease;
+  white-space: nowrap; letter-spacing: 0.3px;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ─── OVERLAY ─── */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.7); z-index: 90;
+  backdrop-filter: blur(3px);
+}
+.overlay.show { display: block; }
+
+/* ─── MISC ─── */
+.divider { height: 1px; background: var(--line); margin: 0 14px; }
+
+/* Winner/loser accent on career banner area */
+.wl-banner {
+  display: none;
+  margin: 0 14px 8px;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.wl-half {
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+.wl-side {
+  padding: 8px 10px;
+  background: var(--bg2);
+}
+.wl-side:first-child { border-right: 1px solid var(--line); }
+.wl-side-title {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px;
+}
+.wl-side-title.w { color: var(--green2); }
+.wl-side-title.l { color: var(--red2); }
+.wl-row-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 2px 0;
+}
+.wl-row-name {
+  font-size: 11px; color: var(--text2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 80px;
+}
+.wl-row-chg { font-family: var(--mono); font-size: 10px; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -236,25 +560,23 @@ body { display: flex; flex-direction: column; }
   <div class="header-top">
     <div class="logo">
       <div class="logo-icon">S</div>
-      <div>
-        <div class="logo-text">Skin<span>Vault</span></div>
-      </div>
+      <div class="logo-text">Skin<span>Vault</span></div>
       <div class="logo-badge">CS2</div>
     </div>
-    <div class="live-dot">live prices</div>
+    <div class="live-dot">live</div>
   </div>
   <div class="steam-row">
-    <input class="steam-input" id="steamInput" placeholder="Steam64 ID (76561198...)" inputmode="numeric"/>
-    <button class="btn-load" onclick="loadPortfolio()">Загрузить</button>
+    <input class="steam-input" id="steamInput" placeholder="Steam64 ID  76561198..." inputmode="numeric"/>
+    <button class="btn-load" onclick="loadPortfolio()">ЗАГРУЗИТЬ</button>
   </div>
 </div>
 
-<!-- Career banner (shown after load) -->
+<!-- Career banner -->
 <div class="career-banner" id="careerBanner" style="display:none" onclick="switchTabById('career')">
   <div class="career-inner">
     <div class="career-char" id="bannerChar"></div>
     <div class="career-info">
-      <div class="career-rank-label">Твой ранг</div>
+      <div class="career-rank-label">Ранг трейдера</div>
       <div class="career-rank-name" id="bannerRankName">—</div>
       <div class="career-progress-wrap">
         <div class="career-progress-bg">
@@ -284,15 +606,18 @@ body { display: flex; flex-direction: column; }
 </div>
 
 <div class="chart-wrap" id="chartWrap">
-  <div class="chart-label"><span>Динамика портфолио</span><span id="chartRange">30 дней</span></div>
+  <div class="chart-label">
+    <span>ПОРТФОЛИО</span>
+    <span id="chartRange">30D</span>
+  </div>
   <div class="chart-container"><svg id="portfolioChart"></svg></div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" data-tab="items" onclick="switchTabEl(this)">Портфолио</div>
-  <div class="tab" data-tab="career" onclick="switchTabEl(this)">Карьера</div>
-  <div class="tab" data-tab="add" onclick="switchTabEl(this)">+ Добавить</div>
-  <div class="tab" data-tab="analytics" onclick="switchTabEl(this)">Топ</div>
+  <div class="tab active" data-tab="items" onclick="switchTabEl(this)">ПОРТФОЛИО</div>
+  <div class="tab" data-tab="career" onclick="switchTabEl(this)">КАРЬЕРА</div>
+  <div class="tab" data-tab="add" onclick="switchTabEl(this)">+ ДОБАВИТЬ</div>
+  <div class="tab" data-tab="analytics" onclick="switchTabEl(this)">ТОП</div>
 </div>
 
 <div class="scroll-area">
@@ -300,13 +625,13 @@ body { display: flex; flex-direction: column; }
   <!-- Portfolio tab -->
   <div class="tab-panel active" id="panel-items">
     <div id="itemsHeader" style="display:none" class="items-header">
-      <span class="items-header-title">Инвентарь</span>
+      <span class="items-header-title">ИНВЕНТАРЬ</span>
       <span class="items-count" id="itemsCount">0 предметов</span>
     </div>
     <div id="itemsContent">
       <div class="empty">
-        <div class="empty-icon">🎮</div>
-        <div class="empty-text">Введите Steam ID и нажмите «Загрузить»<br>чтобы увидеть свой инвентарь</div>
+        <div class="empty-icon">◈</div>
+        <div class="empty-text">Введите Steam ID и нажмите ЗАГРУЗИТЬ<br>чтобы увидеть инвентарь</div>
       </div>
     </div>
   </div>
@@ -315,7 +640,7 @@ body { display: flex; flex-direction: column; }
   <div class="tab-panel" id="panel-career">
     <div class="career-section" id="careerContent">
       <div class="empty">
-        <div class="empty-icon">🏆</div>
+        <div class="empty-icon">◈</div>
         <div class="empty-text">Загрузите портфолио чтобы<br>начать карьеру трейдера</div>
       </div>
     </div>
@@ -326,22 +651,22 @@ body { display: flex; flex-direction: column; }
     <div class="add-section">
       <div class="section-title">Поиск скина</div>
       <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" id="skinSearch" placeholder="Например: AK-47 Redline" oninput="onSearchInput()"/>
+        <span class="search-icon">⌕</span>
+        <input class="search-input" id="skinSearch" placeholder="AK-47 Redline, AWP Dragon Lore..." oninput="onSearchInput()"/>
       </div>
       <div id="searchResults"></div>
       <div id="addForm" style="display:none" class="add-form">
         <div class="selected-skin" id="selectedSkinPreview"></div>
         <div class="form-row">
-          <div class="form-label">Цена покупки ($)</div>
+          <label class="form-label">Цена покупки ($)</label>
           <input class="form-input" id="buyPrice" type="number" step="0.01" min="0" placeholder="0.00"/>
         </div>
         <div class="form-row">
-          <div class="form-label">Количество</div>
+          <label class="form-label">Количество</label>
           <input class="form-input" id="buyQty" type="number" min="1" value="1"/>
         </div>
         <div class="form-row" style="margin-bottom:0">
-          <div class="form-label">Ваш Steam ID</div>
+          <label class="form-label">Steam ID</label>
           <input class="form-input" id="addSteamId" placeholder="76561198..." inputmode="numeric"/>
         </div>
         <button class="btn-add-submit" onclick="submitAddItem()">Добавить в портфолио</button>
@@ -353,7 +678,7 @@ body { display: flex; flex-direction: column; }
   <div class="tab-panel" id="panel-analytics">
     <div class="analytics-section" id="analyticsContent">
       <div class="empty">
-        <div class="empty-icon">📊</div>
+        <div class="empty-icon">◈</div>
         <div class="empty-text">Загрузите портфолио для аналитики</div>
       </div>
     </div>
@@ -369,12 +694,12 @@ body { display: flex; flex-direction: column; }
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Career system ────────────────────────────────────────────────────────────
+// ── Career system ─────────────────────────────────────────────────────────────
 const RANKS = [
   {
     id: 'rookie',    name: 'Новичок',  emoji: '🧑‍💻',
     minPnl: -Infinity, maxPnl: 0,
-    color: '#7a8aaa', glow: 'rgba(122,138,170,0.12)',
+    color: '#7a8aaa', glow: 'rgba(122,138,170,0.10)',
     barColor: '#7a8aaa',
     tasks: [
       { name: 'Добавить первый скин', target: 1, field: 'tracked' },
@@ -385,8 +710,8 @@ const RANKS = [
   {
     id: 'analyst',   name: 'Аналитик', emoji: '🧠',
     minPnl: 0, maxPnl: 50,
-    color: '#3b8ef0', glow: 'rgba(59,142,240,0.12)',
-    barColor: '#3b8ef0',
+    color: '#89b4fa', glow: 'rgba(137,180,250,0.10)',
+    barColor: '#89b4fa',
     tasks: [
       { name: 'Добавить 10 предметов', target: 10, field: 'tracked' },
       { name: 'Получить P&L > $0', target: 1, field: 'profit' },
@@ -396,8 +721,8 @@ const RANKS = [
   {
     id: 'trader',    name: 'Трейдер',  emoji: '💸',
     minPnl: 50, maxPnl: 500,
-    color: '#f4a400', glow: 'rgba(244,164,0,0.15)',
-    barColor: 'linear-gradient(90deg,#f4a400,#ff6b00)',
+    color: '#f9c74f', glow: 'rgba(249,199,79,0.12)',
+    barColor: 'linear-gradient(90deg,#f9c74f,#ffb300)',
     tasks: [
       { name: 'P&L больше $50', target: 50, field: 'pnlUsd' },
       { name: 'Отследить 20 предметов', target: 20, field: 'tracked' },
@@ -408,8 +733,8 @@ const RANKS = [
   {
     id: 'whale',     name: 'Кит',      emoji: '🐋',
     minPnl: 500, maxPnl: Infinity,
-    color: '#7c5cfc', glow: 'rgba(124,92,252,0.15)',
-    barColor: 'linear-gradient(90deg,#7c5cfc,#c084fc)',
+    color: '#cba6f7', glow: 'rgba(203,166,247,0.12)',
+    barColor: 'linear-gradient(90deg,#cba6f7,#a855f7)',
     tasks: [
       { name: 'P&L больше $500', target: 500, field: 'pnlUsd' },
       { name: 'Портфолио > $1000', target: 1000, field: 'totalValue' },
@@ -433,11 +758,8 @@ function getRankData(pnl, trackedCount, totalValue) {
     const span = next.minPnl - rank.minPnl;
     const progress = Math.max(0, pnl - rank.minPnl);
     pct = Math.min(100, Math.round((progress / span) * 100));
-  } else {
-    pct = 100;
-  }
+  } else { pct = 100; }
 
-  // Task progress
   const taskProgress = rank.tasks.map(t => {
     let val = 0;
     if (t.field === 'tracked') val = trackedCount;
@@ -450,171 +772,122 @@ function getRankData(pnl, trackedCount, totalValue) {
   return { rank, rankIdx, next, pct, taskProgress };
 }
 
-// ── SVG Characters ───────────────────────────────────────────────────────────
+// ── SVG Characters ────────────────────────────────────────────────────────────
 function charSvg(rankId, size = 88) {
   const chars = {
     rookie: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Body -->
       <rect x="30" y="48" width="28" height="26" rx="6" fill="#2a3550"/>
-      <!-- Hoodie -->
       <rect x="28" y="46" width="32" height="20" rx="8" fill="#364060"/>
-      <!-- Head -->
       <ellipse cx="44" cy="34" rx="14" ry="15" fill="#f5c8a0"/>
-      <!-- Hair -->
       <ellipse cx="44" cy="22" rx="14" ry="8" fill="#2a1f0e"/>
       <rect x="30" y="22" width="28" height="10" rx="2" fill="#2a1f0e"/>
-      <!-- Eyes -->
       <ellipse cx="39" cy="33" rx="2.5" ry="3" fill="#1a1a2e"/>
       <ellipse cx="49" cy="33" rx="2.5" ry="3" fill="#1a1a2e"/>
       <ellipse cx="39.8" cy="32.2" rx="1" ry="1" fill="white"/>
       <ellipse cx="49.8" cy="32.2" rx="1" ry="1" fill="white"/>
-      <!-- Smile -->
       <path d="M40 39 Q44 42 48 39" stroke="#c0906a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <!-- Backpack strap -->
       <rect x="27" y="47" width="4" height="18" rx="2" fill="#4a5570"/>
-      <!-- Legs -->
       <rect x="32" y="70" width="10" height="12" rx="4" fill="#1e2840"/>
       <rect x="46" y="70" width="10" height="12" rx="4" fill="#1e2840"/>
-      <!-- Shoes -->
       <ellipse cx="37" cy="82" rx="7" ry="3.5" fill="#222"/>
       <ellipse cx="51" cy="82" rx="7" ry="3.5" fill="#222"/>
-      <!-- Glow base -->
       <ellipse cx="44" cy="85" rx="18" ry="4" fill="#7a8aaa" opacity="0.15"/>
     </svg>`,
-
     analyst: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Glow -->
-      <ellipse cx="44" cy="85" rx="20" ry="5" fill="#3b8ef0" opacity="0.2"/>
-      <!-- Body/shirt -->
+      <ellipse cx="44" cy="85" rx="20" ry="5" fill="#89b4fa" opacity="0.2"/>
       <rect x="29" y="47" width="30" height="26" rx="6" fill="#1a3060"/>
-      <!-- Tie -->
       <polygon points="44,47 47,55 44,70 41,55" fill="#e05555"/>
-      <!-- Collar -->
       <polygon points="44,47 38,53 44,56" fill="white" opacity="0.9"/>
       <polygon points="44,47 50,53 44,56" fill="white" opacity="0.7"/>
-      <!-- Head -->
       <ellipse cx="44" cy="33" rx="14" ry="15" fill="#f5c8a0"/>
-      <!-- Hair -->
       <ellipse cx="44" cy="21" rx="14" ry="8" fill="#1a1208"/>
       <rect x="30" y="21" width="28" height="10" rx="1" fill="#1a1208"/>
-      <!-- Glasses -->
-      <rect x="35" y="30" width="8" height="7" rx="3" fill="none" stroke="#3b8ef0" stroke-width="1.5"/>
-      <rect x="45" y="30" width="8" height="7" rx="3" fill="none" stroke="#3b8ef0" stroke-width="1.5"/>
-      <line x1="43" y1="33.5" x2="45" y2="33.5" stroke="#3b8ef0" stroke-width="1.5"/>
-      <line x1="30" y1="32" x2="35" y2="32" stroke="#3b8ef0" stroke-width="1.2"/>
-      <line x1="53" y1="32" x2="58" y2="32" stroke="#3b8ef0" stroke-width="1.2"/>
-      <!-- Eyes -->
+      <rect x="35" y="30" width="8" height="7" rx="3" fill="none" stroke="#89b4fa" stroke-width="1.5"/>
+      <rect x="45" y="30" width="8" height="7" rx="3" fill="none" stroke="#89b4fa" stroke-width="1.5"/>
+      <line x1="43" y1="33.5" x2="45" y2="33.5" stroke="#89b4fa" stroke-width="1.5"/>
+      <line x1="30" y1="32" x2="35" y2="32" stroke="#89b4fa" stroke-width="1.2"/>
+      <line x1="53" y1="32" x2="58" y2="32" stroke="#89b4fa" stroke-width="1.2"/>
       <ellipse cx="39" cy="33" rx="2" ry="2.5" fill="#1a1a2e"/>
       <ellipse cx="49" cy="33" rx="2" ry="2.5" fill="#1a1a2e"/>
-      <!-- Smile -->
       <path d="M40 39.5 Q44 42 48 39.5" stroke="#c0906a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <!-- Tablet -->
       <rect x="55" y="52" width="14" height="18" rx="2" fill="#111827"/>
       <rect x="56.5" y="53.5" width="11" height="15" rx="1" fill="#1e3a5f"/>
-      <line x1="58" y1="57" x2="66" y2="57" stroke="#3b8ef0" stroke-width="1" opacity="0.7"/>
-      <line x1="58" y1="60" x2="66" y2="60" stroke="#3b8ef0" stroke-width="1" opacity="0.5"/>
-      <line x1="58" y1="63" x2="63" y2="63" stroke="#3b8ef0" stroke-width="1" opacity="0.4"/>
-      <!-- Legs -->
+      <line x1="58" y1="57" x2="66" y2="57" stroke="#89b4fa" stroke-width="1" opacity="0.7"/>
+      <line x1="58" y1="60" x2="66" y2="60" stroke="#89b4fa" stroke-width="1" opacity="0.5"/>
+      <line x1="58" y1="63" x2="63" y2="63" stroke="#89b4fa" stroke-width="1" opacity="0.4"/>
       <rect x="31" y="70" width="10" height="12" rx="4" fill="#102040"/>
       <rect x="47" y="70" width="10" height="12" rx="4" fill="#102040"/>
       <ellipse cx="36" cy="82" rx="7" ry="3.5" fill="#1a1a2e"/>
       <ellipse cx="52" cy="82" rx="7" ry="3.5" fill="#1a1a2e"/>
     </svg>`,
-
     trader: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Glow -->
-      <ellipse cx="44" cy="85" rx="22" ry="5" fill="#f4a400" opacity="0.25"/>
-      <!-- Jacket -->
+      <ellipse cx="44" cy="85" rx="22" ry="5" fill="#f9c74f" opacity="0.25"/>
       <rect x="27" y="45" width="34" height="28" rx="8" fill="#1a1a1a"/>
       <rect x="27" y="45" width="10" height="28" rx="4" fill="#2a1a00"/>
       <rect x="51" y="45" width="10" height="28" rx="4" fill="#2a1a00"/>
-      <!-- Chain -->
-      <path d="M36 52 Q44 56 52 52" stroke="#f4a400" stroke-width="1.5" fill="none" opacity="0.8"/>
-      <circle cx="44" cy="56" r="2" fill="#f4a400" opacity="0.9"/>
-      <!-- Head -->
+      <path d="M36 52 Q44 56 52 52" stroke="#f9c74f" stroke-width="1.5" fill="none" opacity="0.8"/>
+      <circle cx="44" cy="56" r="2" fill="#f9c74f" opacity="0.9"/>
       <ellipse cx="44" cy="32" rx="14" ry="15" fill="#d4a878"/>
-      <!-- Sunglasses -->
       <rect x="30" y="26" width="28" height="6" rx="2" fill="#111" opacity="0.9"/>
-      <rect x="33" y="28" width="10" height="6" rx="3" fill="#f4a400" opacity="0.3"/>
-      <rect x="45" y="28" width="10" height="6" rx="3" fill="#f4a400" opacity="0.3"/>
-      <rect x="33" y="28" width="10" height="6" rx="3" fill="none" stroke="#f4a400" stroke-width="1"/>
-      <rect x="45" y="28" width="10" height="6" rx="3" fill="none" stroke="#f4a400" stroke-width="1"/>
-      <!-- Hair slick -->
+      <rect x="33" y="28" width="10" height="6" rx="3" fill="#f9c74f" opacity="0.3"/>
+      <rect x="45" y="28" width="10" height="6" rx="3" fill="#f9c74f" opacity="0.3"/>
+      <rect x="33" y="28" width="10" height="6" rx="3" fill="none" stroke="#f9c74f" stroke-width="1"/>
+      <rect x="45" y="28" width="10" height="6" rx="3" fill="none" stroke="#f9c74f" stroke-width="1"/>
       <ellipse cx="44" cy="21" rx="14" ry="7" fill="#1a0e00"/>
       <path d="M30 24 Q44 18 58 24" fill="#1a0e00"/>
-      <!-- Smirk -->
       <path d="M40 40 Q45 43 49 40" stroke="#b07840" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <!-- Arms -->
       <rect x="16" y="48" width="12" height="8" rx="4" fill="#1a1a1a"/>
       <rect x="60" y="48" width="12" height="8" rx="4" fill="#1a1a1a"/>
-      <!-- Phone in hand -->
       <rect x="60" y="52" width="8" height="13" rx="2" fill="#111827"/>
-      <rect x="61" y="53.5" width="6" height="10" rx="1" fill="#f4a400" opacity="0.3"/>
-      <!-- Legs -->
+      <rect x="61" y="53.5" width="6" height="10" rx="1" fill="#f9c74f" opacity="0.3"/>
       <rect x="30" y="70" width="11" height="13" rx="5" fill="#111"/>
       <rect x="47" y="70" width="11" height="13" rx="5" fill="#111"/>
       <ellipse cx="35.5" cy="83" rx="8" ry="3.5" fill="#0a0a0a"/>
       <ellipse cx="52.5" cy="83" rx="8" ry="3.5" fill="#0a0a0a"/>
-      <!-- Stars effect -->
-      <circle cx="22" cy="44" r="1.5" fill="#f4a400" opacity="0.6"/>
-      <circle cx="66" cy="42" r="1" fill="#f4a400" opacity="0.4"/>
-      <circle cx="18" cy="38" r="1" fill="#f4a400" opacity="0.3"/>
+      <circle cx="22" cy="44" r="1.5" fill="#f9c74f" opacity="0.6"/>
+      <circle cx="66" cy="42" r="1" fill="#f9c74f" opacity="0.4"/>
+      <circle cx="18" cy="38" r="1" fill="#f9c74f" opacity="0.3"/>
     </svg>`,
-
     whale: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Glow -->
-      <ellipse cx="44" cy="85" rx="24" ry="6" fill="#7c5cfc" opacity="0.3"/>
-      <ellipse cx="44" cy="44" rx="30" ry="30" fill="#7c5cfc" opacity="0.04"/>
-      <!-- Suit pants -->
+      <ellipse cx="44" cy="85" rx="24" ry="6" fill="#cba6f7" opacity="0.3"/>
+      <ellipse cx="44" cy="44" rx="30" ry="30" fill="#cba6f7" opacity="0.04"/>
       <rect x="30" y="68" width="28" height="16" rx="2" fill="#120c2a"/>
-      <!-- Suit jacket -->
       <rect x="26" y="44" width="36" height="28" rx="8" fill="#1e1440"/>
       <rect x="26" y="44" width="13" height="28" rx="6" fill="#281a52"/>
       <rect x="49" y="44" width="13" height="28" rx="6" fill="#281a52"/>
-      <!-- White shirt -->
       <rect x="38" y="45" width="12" height="22" rx="2" fill="white" opacity="0.9"/>
-      <!-- Gold buttons -->
-      <circle cx="44" cy="50" r="1.5" fill="#f4a400"/>
-      <circle cx="44" cy="56" r="1.5" fill="#f4a400"/>
-      <circle cx="44" cy="62" r="1.5" fill="#f4a400"/>
-      <!-- Head -->
+      <circle cx="44" cy="50" r="1.5" fill="#f9c74f"/>
+      <circle cx="44" cy="56" r="1.5" fill="#f9c74f"/>
+      <circle cx="44" cy="62" r="1.5" fill="#f9c74f"/>
       <ellipse cx="44" cy="31" rx="14" ry="15" fill="#e8b888"/>
-      <!-- Slick hair -->
       <ellipse cx="44" cy="19" rx="14" ry="8" fill="#0a0a14"/>
       <path d="M30 22 Q44 16 58 22" fill="#0a0a14"/>
-      <!-- Sharp eyes -->
       <ellipse cx="39" cy="30" rx="2.5" ry="3" fill="#1a0a40"/>
       <ellipse cx="49" cy="30" rx="2.5" ry="3" fill="#1a0a40"/>
       <ellipse cx="39.8" cy="29.2" rx="1" ry="1" fill="white"/>
       <ellipse cx="49.8" cy="29.2" rx="1" ry="1" fill="white"/>
-      <!-- Confident smile -->
       <path d="M39 37.5 Q44 41 49 37.5" stroke="#b07840" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-      <!-- Watch on left wrist -->
-      <rect x="13" y="55" width="10" height="7" rx="2" fill="#f4a400" opacity="0.9"/>
+      <rect x="13" y="55" width="10" height="7" rx="2" fill="#f9c74f" opacity="0.9"/>
       <rect x="14.5" y="56.5" width="7" height="4" rx="1" fill="#1a0a40"/>
-      <!-- Champagne glass right -->
-      <rect x="65" y="46" width="3" height="14" rx="1" fill="#7c5cfc" opacity="0.6"/>
-      <polygon points="63,46 71,46 68,54 66,54" fill="#7c5cfc" opacity="0.4"/>
-      <circle cx="67" cy="44" r="3" fill="#c084fc" opacity="0.3"/>
-      <!-- Arms -->
+      <rect x="65" y="46" width="3" height="14" rx="1" fill="#cba6f7" opacity="0.6"/>
+      <polygon points="63,46 71,46 68,54 66,54" fill="#cba6f7" opacity="0.4"/>
+      <circle cx="67" cy="44" r="3" fill="#cba6f7" opacity="0.3"/>
       <rect x="12" y="50" width="15" height="8" rx="4" fill="#281a52"/>
       <rect x="61" y="50" width="15" height="8" rx="4" fill="#281a52"/>
-      <!-- Shoes -->
       <ellipse cx="36" cy="84" rx="8" ry="3.5" fill="#0a0814"/>
       <ellipse cx="52" cy="84" rx="8" ry="3.5" fill="#0a0814"/>
-      <!-- Purple sparkles -->
-      <circle cx="20" cy="40" r="2" fill="#7c5cfc" opacity="0.5"/>
-      <circle cx="68" cy="38" r="2" fill="#c084fc" opacity="0.4"/>
-      <circle cx="16" cy="32" r="1.5" fill="#7c5cfc" opacity="0.3"/>
-      <circle cx="72" cy="45" r="1" fill="#c084fc" opacity="0.5"/>
-      <path d="M20 37 L21.5 35 L23 37" stroke="#7c5cfc" stroke-width="1" fill="none" opacity="0.4"/>
-      <path d="M65 35 L66.5 33 L68 35" stroke="#c084fc" stroke-width="1" fill="none" opacity="0.4"/>
+      <circle cx="20" cy="40" r="2" fill="#cba6f7" opacity="0.5"/>
+      <circle cx="68" cy="38" r="2" fill="#cba6f7" opacity="0.4"/>
+      <circle cx="16" cy="32" r="1.5" fill="#cba6f7" opacity="0.3"/>
+      <circle cx="72" cy="45" r="1" fill="#cba6f7" opacity="0.5"/>
+      <path d="M20 37 L21.5 35 L23 37" stroke="#cba6f7" stroke-width="1" fill="none" opacity="0.4"/>
+      <path d="M65 35 L66.5 33 L68 35" stroke="#cba6f7" stroke-width="1" fill="none" opacity="0.4"/>
     </svg>`,
   };
   return chars[rankId] || chars.rookie;
 }
 
-// ── Config / State ───────────────────────────────────────────────────────────
+// ── Config / State ─────────────────────────────────────────────────────────────
 const API = '';
 let currentSteamId = '';
 let portfolio = [];
@@ -624,15 +897,15 @@ let pendingSkin = null;
 let currentRankData = null;
 
 const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0d1220'); tg.setBackgroundColor('#080c14'); }
+if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0a0e1a'); tg.setBackgroundColor('#060912'); }
 
-// ── Rarity ───────────────────────────────────────────────────────────────────
+// ── Rarity ─────────────────────────────────────────────────────────────────────
 const RARITY_COLORS = {
-  covert:'#e05555', classified:'#9f7fff', restricted:'#3b8ef0',
-  mil_spec_grade:'#4a7fc8', industrial_grade:'#5090c8', extraordinary:'#faaf19',
+  covert: '#f38ba8', classified: '#cba6f7', restricted: '#89b4fa',
+  mil_spec_grade: '#6a9fd8', industrial_grade: '#5090c8', extraordinary: '#f9c74f',
 };
-const WEAR_SHORT = {'Factory New':'FN','Minimal Wear':'MW','Field-Tested':'FT','Well-Worn':'WW','Battle-Scarred':'BS',FN:'FN',MW:'MW',FT:'FT',WW:'WW',BS:'BS'};
-function rarityColor(r) { return RARITY_COLORS[r?.toLowerCase()] || '#5a6880'; }
+const WEAR_SHORT = { 'Factory New':'FN','Minimal Wear':'MW','Field-Tested':'FT','Well-Worn':'WW','Battle-Scarred':'BS',FN:'FN',MW:'MW',FT:'FT',WW:'WW',BS:'BS' };
+function rarityColor(r) { return RARITY_COLORS[r?.toLowerCase()] || '#4a5568'; }
 function wearTag(w) {
   const s = WEAR_SHORT[w] || w?.slice(0,2) || '';
   return s ? `<span class="tag tag-${s.toLowerCase()}">${s}</span>` : '';
@@ -644,21 +917,21 @@ function rarityTag(r) {
   return `<span class="tag ${cls}">${label}</span>`;
 }
 
-// ── API ──────────────────────────────────────────────────────────────────────
+// ── API ────────────────────────────────────────────────────────────────────────
 async function apiFetch(path, opts={}) {
   const res = await fetch(API + path, { headers:{'Content-Type':'application/json'}, ...opts });
   if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
   return res.json();
 }
 
-// ── Load ─────────────────────────────────────────────────────────────────────
+// ── Load ───────────────────────────────────────────────────────────────────────
 async function loadPortfolio() {
   const steamId = document.getElementById('steamInput').value.trim();
   if (!steamId) { showToast('Введите Steam ID'); return; }
   currentSteamId = steamId;
   document.getElementById('addSteamId').value = steamId;
   const content = document.getElementById('itemsContent');
-  content.innerHTML = '<div class="loading"><div class="spinner"></div><span>Загружаем инвентарь...</span></div>';
+  content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
   try {
     const [invData, portData] = await Promise.all([
@@ -697,7 +970,7 @@ async function loadPortfolio() {
   }
 }
 
-// ── Career ───────────────────────────────────────────────────────────────────
+// ── Career ─────────────────────────────────────────────────────────────────────
 function updateCareer(summary, trackedCount) {
   const pnl = summary?.total_pnl ?? 0;
   const totalValue = summary?.total_value ?? 0;
@@ -705,11 +978,10 @@ function updateCareer(summary, trackedCount) {
   currentRankData = rd;
   const { rank, pct, next } = rd;
 
-  // Banner
   const banner = document.getElementById('careerBanner');
   banner.style.display = 'block';
   banner.style.setProperty('--banner-glow', `linear-gradient(135deg, ${rank.glow} 0%, transparent 60%)`);
-  document.getElementById('bannerChar').innerHTML = charSvg(rank.id, 90);
+  document.getElementById('bannerChar').innerHTML = charSvg(rank.id, 80);
   document.getElementById('bannerRankName').textContent = rank.name;
   document.getElementById('bannerRankName').style.color = rank.color;
   const fill = document.getElementById('bannerProgressFill');
@@ -717,9 +989,8 @@ function updateCareer(summary, trackedCount) {
   fill.style.width = pct + '%';
   document.getElementById('bannerPct').textContent = pct + '%';
   document.getElementById('bannerPct').style.color = rank.color;
-  document.getElementById('bannerNext').textContent = next ? `до ${next.name}: $${next.minPnl}` : 'Максимальный ранг';
+  document.getElementById('bannerNext').textContent = next ? `→ ${next.name} $${next.minPnl}` : 'MAX RANK';
 
-  // Career tab
   renderCareerTab(rd, pnl, trackedCount, totalValue);
 }
 
@@ -731,10 +1002,11 @@ function renderCareerTab(rd, pnl, trackedCount, totalValue) {
     let labelClass = '';
     if (i < rankIdx) circleClass = 'done';
     else if (i === rankIdx) { circleClass = 'current'; labelClass = 'current-label'; }
-    const connector = i < RANKS.length - 1 ? `<div class="rank-connector" style="background:${i < rankIdx ? r.color : 'var(--border)'}"></div>` : '';
+    const connector = i < RANKS.length - 1
+      ? `<div class="rank-connector" style="background:${i < rankIdx ? r.color : 'var(--muted2)'}"></div>` : '';
     return `<div class="rank-node">
       ${connector}
-      <div class="rank-circle ${circleClass}" style="${circleClass === 'locked' ? '' : `background:${circleClass === 'done' ? r.color : `linear-gradient(135deg,${r.color},${r.color}cc)`}`}">${r.emoji}</div>
+      <div class="rank-circle ${circleClass}" style="${circleClass === 'locked' ? '' : `background:${circleClass === 'done' ? r.color : r.color}`}">${r.emoji}</div>
       <div class="rank-label ${labelClass}">${r.name}</div>
     </div>`;
   }).join('');
@@ -764,30 +1036,30 @@ function renderCareerTab(rd, pnl, trackedCount, totalValue) {
     </div>
     <div class="career-char-big">${charSvg(rank.id, 120)}</div>
     <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Текущий ранг</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">ТЕКУЩИЙ РАНГ</div>
       <div style="font-size:22px;font-weight:700;color:${rank.color}">${rank.name}</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:6px;">${nextInfo}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;">${nextInfo}</div>
     </div>
     <div style="margin-bottom:8px;margin-top:4px">
-      <div class="career-progress-bg" style="height:8px;border-radius:4px">
-        <div style="height:100%;width:${pct}%;background:${rank.barColor};border-radius:4px;transition:width .6s ease"></div>
+      <div class="career-progress-bg" style="height:3px;border-radius:2px">
+        <div style="height:100%;width:${pct}%;background:${rank.barColor};border-radius:2px;transition:width .6s ease"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;margin-top:5px">
-        <span style="font-size:11px;font-weight:600;color:${rank.color}">${pct}%</span>
-        <span style="font-size:11px;color:var(--hint)">${next ? next.name : '🏆 MAX'}</span>
+      <div style="display:flex;justify-content:space-between;margin-top:4px">
+        <span style="font-family:var(--mono);font-size:10px;font-weight:600;color:${rank.color}">${pct}%</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${next ? next.name : '★ MAX'}</span>
       </div>
     </div>
-    <div style="height:1px;background:var(--border);margin:14px 0 12px"></div>
-    <div class="section-title">Задания</div>
-    <div class="career-tasks">${tasks}</div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-top:4px">
-      <div style="font-size:10px;color:var(--hint);margin-bottom:4px">💡 Совет трейдера</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.5">${rank.tip}</div>
+    <div style="height:1px;background:var(--line);margin:12px 0"></div>
+    <div class="section-title">ЗАДАНИЯ</div>
+    <div class="career-tasks" style="margin-top:8px">${tasks}</div>
+    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:11px;margin-top:4px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;">// СОВЕТ</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.6">${rank.tip}</div>
     </div>
   `;
 }
 
-// ── Stats ────────────────────────────────────────────────────────────────────
+// ── Stats ──────────────────────────────────────────────────────────────────────
 function renderStats(s) {
   if (!s) return;
   document.getElementById('statTotal').textContent = '$' + s.total_value.toFixed(2);
@@ -801,7 +1073,7 @@ function renderStats(s) {
   pctEl.className = 'stat-sub ' + (s.total_pnl >= 0 ? 'c-green' : 'c-red');
 }
 
-// ── Items ────────────────────────────────────────────────────────────────────
+// ── Items ──────────────────────────────────────────────────────────────────────
 function renderItems(items) {
   const content = document.getElementById('itemsContent');
   const header = document.getElementById('itemsHeader');
@@ -811,8 +1083,8 @@ function renderItems(items) {
   content.innerHTML = items.map((item, i) => {
     const rc = rarityColor(item.rarity);
     const imgSrc = item.image_url
-      ? `<img src="${item.image_url}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="img-fallback" style="display:none">🔫</span>`
-      : `<span class="img-fallback">🔫</span>`;
+      ? `<img src="${item.image_url}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="img-fallback" style="display:none">⬡</span>`
+      : `<span class="img-fallback">⬡</span>`;
     let rightCol;
     if (item.tracked) {
       const s = item.pnl >= 0 ? '+' : '';
@@ -824,8 +1096,8 @@ function renderItems(items) {
       </div>`;
     } else {
       rightCol = `<div class="item-right">
-        <div style="font-size:10px;color:var(--hint)">не отслеживается</div>
-        <div style="font-size:10px;color:var(--amber);margin-top:3px;cursor:pointer" onclick="event.stopPropagation();quickTrack(${i})">+ добавить</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">не отслеживается</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:3px;cursor:pointer" onclick="event.stopPropagation();quickTrack(${i})">+ ДОБАВИТЬ</div>
       </div>`;
     }
     return `<div class="item-card${item.tracked ? '' : ' untracked'}" onclick="openDetail(${i})">
@@ -844,13 +1116,13 @@ function quickTrack(idx) {
   const item = portfolio[idx];
   pendingSkin = { market_hash_name: item.market_hash_name, name: item.market_hash_name, image_url: item.image_url };
   document.getElementById('skinSearch').value = item.market_hash_name;
-  const img = item.image_url ? `<img class="selected-thumb" src="${item.image_url}"/>` : `<div class="selected-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px">🔫</div>`;
+  const img = item.image_url ? `<img class="selected-thumb" src="${item.image_url}"/>` : `<div class="selected-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px">⬡</div>`;
   document.getElementById('selectedSkinPreview').innerHTML = `${img}<div><div class="selected-name">${item.market_hash_name}</div><div class="selected-price">Введите цену покупки</div></div>`;
   document.getElementById('addForm').style.display = 'block';
   switchTabById('add');
 }
 
-// ── Analytics ────────────────────────────────────────────────────────────────
+// ── Analytics ──────────────────────────────────────────────────────────────────
 function renderAnalytics(items) {
   if (!items.length) return;
   const sorted = [...items].sort((a,b) => b.pnl - a.pnl);
@@ -858,23 +1130,25 @@ function renderAnalytics(items) {
   const bot3 = sorted.filter(i=>i.pnl<0).slice(-3).reverse();
   document.getElementById('analyticsContent').innerHTML = `
     <div class="stats-grid" style="padding:12px 0 10px">
-      <div class="stat-card"><div class="stat-label">Предметов</div><div class="stat-value c-amber">${items.length}</div><div class="stat-sub c-muted">в трекере</div></div>
-      <div class="stat-card"><div class="stat-label">Прибыльных</div><div class="stat-value c-green">${items.filter(i=>i.pnl>0).length}</div><div class="stat-sub c-red">убыточных: ${items.filter(i=>i.pnl<0).length}</div></div>
+      <div class="stat-card"><div class="stat-label">ПРЕДМЕТОВ</div><div class="stat-value c-amber">${items.length}</div><div class="stat-sub c-muted">в трекере</div></div>
+      <div class="stat-card"><div class="stat-label">ПРИБЫЛЬНЫХ</div><div class="stat-value c-green">${items.filter(i=>i.pnl>0).length}</div><div class="stat-sub c-red">убыточных: ${items.filter(i=>i.pnl<0).length}</div></div>
     </div>
-    <div class="section-title" style="margin-bottom:8px">Топ по прибыли</div>
+    <div class="section-title" style="margin-bottom:8px">ТОП ПО ПРИБЫЛИ</div>
     ${top5.map((item,i) => topRow(item,i+1)).join('')}
-    ${bot3.length ? `<div class="section-title" style="margin:14px 0 8px">Убыточные</div>${bot3.map((item,i)=>topRow(item,i+1,true)).join('')}` : ''}
+    ${bot3.length ? `<div class="section-title" style="margin:14px 0 8px">УБЫТОЧНЫЕ</div>${bot3.map((item,i)=>topRow(item,i+1,true)).join('')}` : ''}
   `;
 }
 
 function topRow(item, rank, red=false) {
   const s = item.pnl >= 0 ? '+' : '';
   const cls = red ? 'c-red' : 'c-green';
-  const img = item.image_url ? `<img class="top-thumb" src="${item.image_url}" loading="lazy"/>` : `<div class="top-thumb" style="display:flex;align-items:center;justify-content:center;font-size:18px">🔫</div>`;
+  const img = item.image_url
+    ? `<img class="top-thumb" src="${item.image_url}" loading="lazy"/>`
+    : `<div class="top-thumb" style="display:flex;align-items:center;justify-content:center;font-size:18px">⬡</div>`;
   return `<div class="top-item">${img}<div class="top-rank">${rank}</div><div class="top-info"><div class="top-name">${item.market_hash_name}</div><div class="top-pnl ${cls}">${s}$${Math.abs(item.pnl).toFixed(2)} (${s}${item.pnl_pct.toFixed(1)}%)</div></div></div>`;
 }
 
-// ── Chart ────────────────────────────────────────────────────────────────────
+// ── Chart ──────────────────────────────────────────────────────────────────────
 function renderChart(items) {
   if (!items.length) return;
   document.getElementById('chartWrap').style.display = 'block';
@@ -887,41 +1161,44 @@ function renderChart(items) {
   pts[pts.length-1] = total;
   const svg = document.getElementById('portfolioChart');
   const W = svg.parentElement.offsetWidth || 320;
-  const H = 68; const pad = 6;
+  const H = 60; const pad = 4;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  const min = Math.min(...pts)-total*0.01; const max = Math.max(...pts)+total*0.01;
+  const min = Math.min(...pts)-total*0.01;
+  const max = Math.max(...pts)+total*0.01;
   const xs = pts.map((_,i)=>pad+(i/(pts.length-1))*(W-pad*2));
   const ys = pts.map(v=>pad+(1-(v-min)/(max-min))*(H-pad*2));
   const d = xs.map((x,i)=>`${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
   const fill = d+` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
   const rising = pts[pts.length-1]>=pts[0];
-  const color = rising?'#2ecc7a':'#e05555';
-  svg.innerHTML = `<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.2"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="3" fill="${color}"/>`;
+  const color = rising?'#00c97b':'#ff4466';
+  svg.innerHTML = `<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="2.5" fill="${color}"/>`;
 }
 
-// ── Detail ───────────────────────────────────────────────────────────────────
+// ── Detail ─────────────────────────────────────────────────────────────────────
 async function openDetail(idx) {
   selectedItem = idx;
   const item = portfolio[idx];
-  const imgTag = item.image_url ? `<img class="detail-img" src="${item.image_url}"/>` : `<div class="detail-img" style="display:flex;align-items:center;justify-content:center;font-size:50px">🔫</div>`;
+  const imgTag = item.image_url
+    ? `<img class="detail-img" src="${item.image_url}"/>`
+    : `<div class="detail-img" style="display:flex;align-items:center;justify-content:center;font-size:50px">⬡</div>`;
   let statsHtml='', actionsHtml='';
   if (item.tracked) {
     const s = item.pnl>=0?'+':''; const cls = item.pnl>=0?'c-green':'c-red';
     let histSvg='';
     try {
       const hist = await apiFetch(`/api/history/${encodeURIComponent(item.market_hash_name)}`);
-      if (hist.history?.length>1) histSvg = buildMiniChart(hist.history.map(h=>h.price_usd),320,56,'#f4a400');
+      if (hist.history?.length>1) histSvg = buildMiniChart(hist.history.map(h=>h.price_usd),320,52,'#f9c74f');
     } catch(_) {}
     statsHtml = `<div class="detail-stats">
-      <div class="ds-card"><div class="ds-label">Текущая цена</div><div class="ds-val c-amber">$${(item.current_price||0).toFixed(2)}</div></div>
-      <div class="ds-card"><div class="ds-label">Куплено за</div><div class="ds-val">$${item.buy_price.toFixed(2)}</div></div>
+      <div class="ds-card"><div class="ds-label">ЦЕНА СЕЙЧАС</div><div class="ds-val c-amber">$${(item.current_price||0).toFixed(2)}</div></div>
+      <div class="ds-card"><div class="ds-label">КУПЛЕНО ЗА</div><div class="ds-val">$${item.buy_price.toFixed(2)}</div></div>
       <div class="ds-card"><div class="ds-label">P&amp;L</div><div class="ds-val ${cls}">${s}$${Math.abs(item.pnl).toFixed(2)}</div></div>
-      <div class="ds-card"><div class="ds-label">Доходность</div><div class="ds-val ${cls}">${s}${item.pnl_pct.toFixed(1)}%</div></div>
+      <div class="ds-card"><div class="ds-label">ДОХОДНОСТЬ</div><div class="ds-val ${cls}">${s}${item.pnl_pct.toFixed(1)}%</div></div>
     </div>${histSvg?`<div class="mini-hist">${histSvg}</div>`:''}`;
     actionsHtml = `<div class="detail-actions"><button class="btn-del" onclick="deleteItem(${idx})">Удалить</button><button class="btn-close" onclick="closeDetail()">Закрыть</button></div>`;
   } else {
-    statsHtml = `<div style="text-align:center;color:var(--hint);font-size:13px;padding:8px 0 16px;line-height:1.6">Предмет не отслеживается —<br>добавьте цену покупки чтобы считать P&L</div>`;
-    actionsHtml = `<div class="detail-actions"><button class="btn-track" onclick="closeDetail();quickTrack(${idx})">+ Начать отслеживать</button><button class="btn-close" onclick="closeDetail()">Закрыть</button></div>`;
+    statsHtml = `<div style="text-align:center;font-family:var(--mono);color:var(--muted);font-size:11px;padding:8px 0 16px;line-height:1.7">Предмет не отслеживается —<br>добавьте цену покупки чтобы считать P&L</div>`;
+    actionsHtml = `<div class="detail-actions"><button class="btn-track" onclick="closeDetail();quickTrack(${idx})">+ Отслеживать</button><button class="btn-close" onclick="closeDetail()">Закрыть</button></div>`;
   }
   document.getElementById('detailContent').innerHTML = `<div class="detail-img-wrap">${imgTag}</div><div class="detail-name">${item.market_hash_name}</div><div class="detail-wear">${item.wear||''}</div>${statsHtml}${actionsHtml}`;
   document.getElementById('detailPanel').classList.add('open');
@@ -937,7 +1214,7 @@ function closeDetail() {
 async function deleteItem(idx) {
   const item = portfolio[idx];
   try {
-    await apiFetch(`/api/portfolio/${currentSteamId}/${encodeURIComponent(item.market_hash_name)}`, {method:'DELETE'});
+    await apiFetch(`/api/portfolio/${currentSteamId}/${encodeURIComponent(item.market_hash_name)}`,{method:'DELETE'});
     showToast('Удалено'); closeDetail(); loadPortfolio();
   } catch(e) { showToast('Ошибка: '+e.message); }
 }
@@ -949,10 +1226,10 @@ function buildMiniChart(pts,W,H,color) {
   const ys=pts.map(v=>pad+(1-(v-min)/(max-min))*(H-pad*2));
   const d=xs.map((x,i)=>`${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
   const fill=d+` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.2"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#mg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#mg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
 }
 
-// ── Search ───────────────────────────────────────────────────────────────────
+// ── Search ─────────────────────────────────────────────────────────────────────
 function onSearchInput() {
   clearTimeout(searchTimeout);
   const q = document.getElementById('skinSearch').value.trim();
@@ -965,12 +1242,19 @@ async function doSearch(q) {
   box.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   try {
     const data = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
-    if (!data.results.length) { box.innerHTML='<div style="padding:10px;color:var(--hint);font-size:13px;">Ничего не найдено</div>'; return; }
+    if (!data.results.length) {
+      box.innerHTML='<div style="padding:10px;font-family:var(--mono);color:var(--muted);font-size:11px;">Ничего не найдено</div>';
+      return;
+    }
     box.innerHTML = '<div class="search-results">'+data.results.map(r => {
-      const img = r.image_url ? `<img class="sr-thumb" src="${r.image_url}" loading="lazy"/>` : `<div class="sr-thumb" style="display:flex;align-items:center;justify-content:center">🔫</div>`;
+      const img = r.image_url
+        ? `<img class="sr-thumb" src="${r.image_url}" loading="lazy"/>`
+        : `<div class="sr-thumb" style="display:flex;align-items:center;justify-content:center">⬡</div>`;
       return `<div class="sr-item" onclick='selectSkin(${JSON.stringify(r)})'>${img}<span class="sr-name">${r.name||r.market_hash_name}</span></div>`;
     }).join('')+'</div>';
-  } catch(e) { box.innerHTML=`<div style="padding:10px;color:var(--red);font-size:13px;">${e.message}</div>`; }
+  } catch(e) {
+    box.innerHTML=`<div style="padding:10px;font-family:var(--mono);color:var(--red);font-size:11px;">${e.message}</div>`;
+  }
 }
 
 async function selectSkin(skin) {
@@ -982,7 +1266,9 @@ async function selectSkin(skin) {
     const p = await apiFetch(`/api/price/${encodeURIComponent(skin.market_hash_name)}`);
     price=p.price_usd; if(price) pendingSkin.image_url=p.image_url||skin.image_url;
   } catch(_) {}
-  const img = pendingSkin.image_url ? `<img class="selected-thumb" src="${pendingSkin.image_url}"/>` : `<div class="selected-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px">🔫</div>`;
+  const img = pendingSkin.image_url
+    ? `<img class="selected-thumb" src="${pendingSkin.image_url}"/>`
+    : `<div class="selected-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px">⬡</div>`;
   document.getElementById('selectedSkinPreview').innerHTML = `${img}<div><div class="selected-name">${skin.name||skin.market_hash_name}</div>${price?`<div class="selected-price">Сейчас: $${price.toFixed(2)}</div>`:'<div class="selected-price">Цена неизвестна</div>'}</div>`;
   if(price) document.getElementById('buyPrice').placeholder=price.toFixed(2);
   document.getElementById('addForm').style.display='block';
@@ -1004,7 +1290,7 @@ async function submitAddItem() {
   } catch(e){showToast('Ошибка: '+e.message);}
 }
 
-// ── Tabs ─────────────────────────────────────────────────────────────────────
+// ── Tabs ───────────────────────────────────────────────────────────────────────
 function switchTabEl(el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
@@ -1017,7 +1303,7 @@ function switchTabById(name) {
   if(el) switchTabEl(el);
 }
 
-// ── Toast ────────────────────────────────────────────────────────────────────
+// ── Toast ──────────────────────────────────────────────────────────────────────
 let toastTimer;
 function showToast(msg) {
   const t=document.getElementById('toast');
