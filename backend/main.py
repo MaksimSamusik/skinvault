@@ -19,13 +19,42 @@ import os
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../frontend")
 
 # ── Steam constants ────────────────────────────────────────────────────────
-STEAM_PRICE_URL  = "https://steamcommunity.com/market/priceoverview/"
-STEAM_SEARCH_URL = "https://steamcommunity.com/market/search/render/"
+STEAM_PRICE_URL     = "https://steamcommunity.com/market/priceoverview/"
+STEAM_SEARCH_URL    = "https://steamcommunity.com/market/search/render/"
 STEAM_INVENTORY_URL = "https://steamcommunity.com/inventory/{steam_id}/730/2"
-STEAM_CDN = "https://community.akamai.steamstatic.com/economy/image/"
-CACHE_TTL = 3600  # 1 hour
+STEAM_RESOLVE_URL   = "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/"
+STEAM_CDN           = "https://community.akamai.steamstatic.com/economy/image/"
+STEAM_API_KEY       = os.getenv("STEAM_API_KEY", "")
+CACHE_TTL           = 3600  # 1 hour
+
 
 # ── Steam helpers ──────────────────────────────────────────────────────────
+async def resolve_steam_id(client: httpx.AsyncClient, steam_id_or_name: str) -> str:
+    """Если передан не числовой ID — резолвим vanity URL в SteamID64."""
+    if steam_id_or_name.isdigit():
+        return steam_id_or_name
+
+    if not STEAM_API_KEY:
+        # Без ключа просто возвращаем как есть — Steam сам вернёт ошибку
+        return steam_id_or_name
+
+    try:
+        resp = await client.get(
+            STEAM_RESOLVE_URL,
+            params={"key": STEAM_API_KEY, "vanityurl": steam_id_or_name},
+            timeout=10,
+        )
+        data = resp.json()
+        response = data.get("response", {})
+        if response.get("success") == 1:
+            return response["steamid"]
+    except Exception:
+        pass
+
+    # Не удалось — возвращаем оригинал
+    return steam_id_or_name
+
+
 async def fetch_item_image(client: httpx.AsyncClient, name: str) -> Optional[str]:
     try:
         resp = await client.get(
@@ -111,7 +140,20 @@ async def fetch_steam_inventory(client: httpx.AsyncClient, steam_id: str) -> lis
             timeout=15,
             headers={"User-Agent": "Mozilla/5.0"},
         )
-        data = resp.json()
+        try:
+            data = resp.json()
+        except Exception:
+            data = None
+
+        if data is None:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Steam returned invalid response (status {resp.status_code}). "
+                       "Inventory may be private or Steam is rate-limiting.",
+            )
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Steam API error: {e}")
 
@@ -174,10 +216,38 @@ class UpdateItemRequest(BaseModel):
     buy_price: float
     quantity: int = 1
 
+
 # ── Routes ─────────────────────────────────────────────────────────────────
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/api/resolve/{vanity_url}")
+async def resolve_vanity(vanity_url: str):
+    """Резолвит кастомный URL Steam (username) в SteamID64."""
+    if vanity_url.isdigit():
+        return {"vanity_url": vanity_url, "steam_id": vanity_url}
+
+    if not STEAM_API_KEY:
+        raise HTTPException(status_code=503, detail="STEAM_API_KEY not configured")
+
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.get(
+                STEAM_RESOLVE_URL,
+                params={"key": STEAM_API_KEY, "vanityurl": vanity_url},
+                timeout=10,
+            )
+            data = resp.json()
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Steam API error: {e}")
+
+    response = data.get("response", {})
+    if response.get("success") != 1:
+        raise HTTPException(status_code=404, detail="Steam username not found")
+
+    return {"vanity_url": vanity_url, "steam_id": response["steamid"]}
 
 
 @app.get("/api/search")
@@ -220,6 +290,8 @@ async def get_price(
 @app.get("/api/inventory/{steam_id}")
 async def get_inventory(steam_id: str):
     async with httpx.AsyncClient() as client:
+        # Автоматически резолвим username → SteamID64
+        steam_id = await resolve_steam_id(client, steam_id)
         items = await fetch_steam_inventory(client, steam_id)
     return {"steam_id": steam_id, "items": items, "count": len(items)}
 
@@ -229,6 +301,10 @@ async def get_portfolio(
     steam_id: str,
     session: AsyncSession = Depends(get_session),
 ):
+    # Резолвим на случай если передали username
+    async with httpx.AsyncClient() as client:
+        steam_id = await resolve_steam_id(client, steam_id)
+
     result = await session.execute(
         select(Portfolio)
         .where(Portfolio.steam_id == steam_id)
@@ -288,9 +364,13 @@ async def add_item(
     req: AddItemRequest,
     session: AsyncSession = Depends(get_session),
 ):
+    # Резолвим steam_id если нужно
+    async with httpx.AsyncClient() as client:
+        resolved_id = await resolve_steam_id(client, req.steam_id)
+
     result = await session.execute(
         select(Portfolio).where(
-            Portfolio.steam_id == req.steam_id,
+            Portfolio.steam_id == resolved_id,
             Portfolio.market_hash_name == req.market_hash_name,
         )
     )
@@ -302,7 +382,7 @@ async def add_item(
         existing.quantity  = req.quantity
     else:
         session.add(Portfolio(
-            steam_id=req.steam_id,
+            steam_id=resolved_id,
             market_hash_name=req.market_hash_name,
             buy_price=req.buy_price,
             quantity=req.quantity,
@@ -310,7 +390,7 @@ async def add_item(
         ))
 
     await session.commit()
-    return {"ok": True}
+    return {"ok": True, "steam_id": resolved_id}
 
 
 @app.put("/api/portfolio/{steam_id}/{market_hash_name:path}")
@@ -320,6 +400,9 @@ async def update_item(
     req: UpdateItemRequest,
     session: AsyncSession = Depends(get_session),
 ):
+    async with httpx.AsyncClient() as client:
+        steam_id = await resolve_steam_id(client, steam_id)
+
     await session.execute(
         update(Portfolio)
         .where(
@@ -338,6 +421,9 @@ async def remove_item(
     market_hash_name: str,
     session: AsyncSession = Depends(get_session),
 ):
+    async with httpx.AsyncClient() as client:
+        steam_id = await resolve_steam_id(client, steam_id)
+
     await session.execute(
         delete(Portfolio).where(
             Portfolio.steam_id == steam_id,
