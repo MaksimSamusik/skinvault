@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from models import Base
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=False)  # не перезаписывать переменные Railway
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
