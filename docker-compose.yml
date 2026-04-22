@@ -7,7 +7,9 @@ services:
     volumes:
       - ./data:/app/data
     environment:
+      - DATABASE_URL=${DATABASE_URL}
       - DB_PATH=/app/data/skinvault.db
+      - STEAM_API_KEY=${STEAM_API_KEY}
     restart: unless-stopped
 
   bot:
@@ -16,6 +18,7 @@ services:
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
       - WEBAPP_URL=${WEBAPP_URL}
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
       - api
     restart: unless-stopped
