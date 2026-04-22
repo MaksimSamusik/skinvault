@@ -592,17 +592,36 @@ body { display: flex; flex-direction: column; }
   </div>
 </div>
 
-<div class="stats-grid" id="statsGrid">
-  <div class="stat-card">
-    <div class="stat-label">Стоимость</div>
-    <div class="stat-value c-amber" id="statTotal">—</div>
-    <div class="stat-sub c-muted" id="statItems">загрузите портфолио</div>
+<div id="portfolioSummary" style="display:none;margin:8px 14px 6px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;">
+  <div style="padding:12px 14px 10px;">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px;">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;">СТОИМОСТЬ ПОРТФОЛИО</div>
+        <div id="sumTotal" style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--amber);line-height:1;">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px;">P&amp;L</div>
+        <div id="sumPnl" style="font-family:var(--mono);font-size:18px;font-weight:700;line-height:1;">—</div>
+        <div id="sumPnlPct" style="font-family:var(--mono);font-size:11px;margin-top:2px;">—</div>
+      </div>
+    </div>
+    <div style="height:1px;background:var(--line);margin-bottom:10px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;">
+      <div style="padding-right:10px;border-right:1px solid var(--line);">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">ВЛОЖЕНО</div>
+        <div id="sumInvested" style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text);">—</div>
+      </div>
+      <div style="padding:0 10px;border-right:1px solid var(--line);text-align:center;">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">ПРЕДМЕТОВ</div>
+        <div id="sumCount" style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--blue);">—</div>
+      </div>
+      <div style="padding-left:10px;text-align:right;">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">ДОХОДНОСТЬ</div>
+        <div id="sumRoi" style="font-family:var(--mono);font-size:13px;font-weight:600;">—</div>
+      </div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-label">P&amp;L</div>
-    <div class="stat-value" id="statPnl">—</div>
-    <div class="stat-sub" id="statPnlPct"></div>
-  </div>
+  <div id="sumProgressBar" style="height:2px;background:var(--bg4);"></div>
 </div>
 
 <div class="chart-wrap" id="chartWrap">

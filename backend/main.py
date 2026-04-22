@@ -19,27 +19,210 @@ import os
 
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../frontend")
 
-# ── Steam constants ────────────────────────────────────────────────────────
+# ── Constants ──────────────────────────────────────────────────────────────
 STEAM_PRICE_URL     = "https://steamcommunity.com/market/priceoverview/"
 STEAM_SEARCH_URL    = "https://steamcommunity.com/market/search/render/"
 STEAM_INVENTORY_URL = "https://steamcommunity.com/inventory/{steam_id}/730/2"
 STEAM_RESOLVE_URL   = "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/"
 STEAM_CDN           = "https://community.akamai.steamstatic.com/economy/image/"
 STEAM_API_KEY       = os.getenv("STEAM_API_KEY", "")
-CACHE_TTL           = 3600  # 1 hour
+
+# market.csgo.com — публичный прайслист, без ключа, обновляется ~1 раз в час
+MARKET_CSGO_PRICES_URL = "https://market.csgo.com/api/v2/prices/USD.json"
+
+# Lisskins — публичный прайслист CS2, без ключа
+# Возвращает { "success": true, "items": [ { "name": "...", "price": 1.23 }, ... ] }
+LISSKINS_PRICES_URL = "https://lis-skins.ru/market_pricelist/json_cs2/?currency=USD"
+
+CACHE_TTL        = 3600   # 1 час для Steam (rate-limit)
+CACHE_TTL_FAST   = 1800   # 30 мин для сторонних маркетов
+
+# In-memory кэш прайслистов (чтобы не скачивать весь файл каждый раз)
+_market_csgo_prices: dict  = {}   # market_hash_name -> price_usd
+_market_csgo_loaded: float = 0.0
+
+_lisskins_prices: dict     = {}
+_lisskins_loaded: float    = 0.0
 
 
-# ── Steam helpers ──────────────────────────────────────────────────────────
+# ── Bulk price loaders ────────────────────────────────────────────────────
+
+async def load_market_csgo_prices(client: httpx.AsyncClient) -> dict:
+    """Загружает весь прайслист market.csgo.com (USD) в память."""
+    global _market_csgo_prices, _market_csgo_loaded
+    now = time.time()
+    if _market_csgo_prices and (now - _market_csgo_loaded) < CACHE_TTL_FAST:
+        return _market_csgo_prices
+    try:
+        resp = await client.get(MARKET_CSGO_PRICES_URL, timeout=30)
+        data = resp.json()
+        if data.get("success") and data.get("items"):
+            # Формат: { "classid_instanceid": { "price": "1.23", "market_hash_name": "..." } }
+            result = {}
+            for item in data["items"].values():
+                name = item.get("market_hash_name")
+                price_str = item.get("price")
+                if name and price_str:
+                    try:
+                        result[name] = float(price_str)
+                    except (ValueError, TypeError):
+                        pass
+            _market_csgo_prices = result
+            _market_csgo_loaded = now
+    except Exception:
+        pass
+    return _market_csgo_prices
+
+
+async def load_lisskins_prices(client: httpx.AsyncClient) -> dict:
+    """Загружает весь прайслист lisskins в память."""
+    global _lisskins_prices, _lisskins_loaded
+    now = time.time()
+    if _lisskins_prices and (now - _lisskins_loaded) < CACHE_TTL_FAST:
+        return _lisskins_prices
+    try:
+        resp = await client.get(LISSKINS_PRICES_URL, timeout=30,
+                                headers={"User-Agent": "Mozilla/5.0"})
+        data = resp.json()
+        result = {}
+        # Формат может быть либо списком, либо объектом
+        items = data if isinstance(data, list) else data.get("items", [])
+        for item in items:
+            name = item.get("name") or item.get("market_hash_name")
+            price = item.get("price") or item.get("steam_price")
+            if name and price:
+                try:
+                    result[name] = float(price)
+                except (ValueError, TypeError):
+                    pass
+        if result:
+            _lisskins_prices = result
+            _lisskins_loaded = now
+    except Exception:
+        pass
+    return _lisskins_prices
+
+
+# ── Per-item price fetcher ─────────────────────────────────────────────────
+
+async def fetch_all_prices(
+    client: httpx.AsyncClient,
+    name: str,
+    session: AsyncSession,
+) -> dict:
+    """
+    Возвращает цены со всех источников для одного предмета.
+    Использует DB-кэш + in-memory кэш прайслистов.
+    Возвращает: { price_steam, price_lisskins, price_market_csgo, image_url, best_price }
+    """
+    now = int(time.time())
+
+    # Проверяем DB-кэш
+    result = await session.execute(
+        select(PriceCache).where(PriceCache.market_hash_name == name)
+    )
+    cached = result.scalar_one_or_none()
+    if cached and (now - cached.fetched_at) < CACHE_TTL:
+        return _build_price_response(cached)
+
+    # ── Steam price ──────────────────────────────────────────────────────
+    price_steam = None
+    image_url = cached.image_url if cached else None
+
+    try:
+        resp = await client.get(
+            STEAM_PRICE_URL,
+            params={"appid": 730, "currency": 1, "market_hash_name": name},
+            timeout=10,
+        )
+        data = resp.json()
+        if data.get("success") and data.get("lowest_price"):
+            price_steam = float(
+                data["lowest_price"].replace("$", "").replace(",", "").strip()
+            )
+    except Exception:
+        pass
+
+    # Получаем картинку если ещё нет
+    if not image_url:
+        image_url = await fetch_item_image(client, name)
+
+    # ── market.csgo.com price ─────────────────────────────────────────────
+    market_csgo_map = await load_market_csgo_prices(client)
+    price_market_csgo = market_csgo_map.get(name)
+
+    # ── Lisskins price ────────────────────────────────────────────────────
+    lisskins_map = await load_lisskins_prices(client)
+    price_lisskins = lisskins_map.get(name)
+
+    # ── Upsert DB cache ──────────────────────────────────────────────────
+    if cached:
+        cached.price_steam       = price_steam
+        cached.price_lisskins    = price_lisskins
+        cached.price_market_csgo = price_market_csgo
+        cached.image_url         = image_url
+        cached.fetched_at        = now
+    else:
+        cached = PriceCache(
+            market_hash_name=name,
+            price_steam=price_steam,
+            price_lisskins=price_lisskins,
+            price_market_csgo=price_market_csgo,
+            image_url=image_url,
+            fetched_at=now,
+        )
+        session.add(cached)
+
+    # Пишем историю по лучшей цене
+    best = _best_price(price_steam, price_lisskins, price_market_csgo)
+    if best:
+        session.add(PriceHistory(
+            market_hash_name=name,
+            price_usd=best,
+            source="best",
+            recorded_at=now,
+        ))
+
+    await session.commit()
+    return _build_price_response(cached)
+
+
+def _best_price(steam, lisskins, market_csgo) -> Optional[float]:
+    """Возвращает наименьшую доступную цену среди источников."""
+    prices = [p for p in [steam, lisskins, market_csgo] if p is not None and p > 0]
+    return min(prices) if prices else None
+
+
+def _build_price_response(cached: PriceCache) -> dict:
+    best = _best_price(cached.price_steam, cached.price_lisskins, cached.price_market_csgo)
+    return {
+        "price_usd":          best,                    # для обратной совместимости
+        "price_steam":        cached.price_steam,
+        "price_lisskins":     cached.price_lisskins,
+        "price_market_csgo":  cached.price_market_csgo,
+        "best_price":         best,
+        "best_source":        _best_source(cached.price_steam, cached.price_lisskins, cached.price_market_csgo),
+        "image_url":          cached.image_url,
+    }
+
+
+def _best_source(steam, lisskins, market_csgo) -> str:
+    candidates = {
+        "steam":       steam,
+        "lisskins":    lisskins,
+        "market_csgo": market_csgo,
+    }
+    valid = {k: v for k, v in candidates.items() if v is not None and v > 0}
+    if not valid:
+        return "steam"
+    return min(valid, key=lambda k: valid[k])
+
+
+# ── Steam helpers ─────────────────────────────────────────────────────────
+
 async def resolve_steam_id(client: httpx.AsyncClient, steam_id_or_name: str) -> str:
-    """
-    Резолвит vanity URL (username) в SteamID64.
-    Сначала пробует официальный API (если есть ключ),
-    затем fallback — парсинг XML-профиля Steam.
-    """
     if steam_id_or_name.isdigit():
         return steam_id_or_name
-
-    # Способ 1: официальный API Steam
     if STEAM_API_KEY:
         try:
             resp = await client.get(
@@ -53,13 +236,10 @@ async def resolve_steam_id(client: httpx.AsyncClient, steam_id_or_name: str) -> 
                 return response["steamid"]
         except Exception:
             pass
-
-    # Способ 2: парсинг XML-профиля (работает без API ключа)
     try:
         resp = await client.get(
             f"https://steamcommunity.com/id/{steam_id_or_name}",
-            params={"xml": 1},
-            timeout=10,
+            params={"xml": 1}, timeout=10,
             headers={"User-Agent": "Mozilla/5.0"},
         )
         match = re.search(r"<steamID64>(\d+)</steamID64>", resp.text)
@@ -67,8 +247,6 @@ async def resolve_steam_id(client: httpx.AsyncClient, steam_id_or_name: str) -> 
             return match.group(1)
     except Exception:
         pass
-
-    # Не удалось — возвращаем оригинал (вызывающий код должен проверить)
     return steam_id_or_name
 
 
@@ -91,96 +269,29 @@ async def fetch_item_image(client: httpx.AsyncClient, name: str) -> Optional[str
     return None
 
 
-async def fetch_market_price(
-    client: httpx.AsyncClient,
-    name: str,
-    session: AsyncSession,
-) -> dict:
-    now = int(time.time())
-
-    # Check cache
-    result = await session.execute(
-        select(PriceCache).where(PriceCache.market_hash_name == name)
-    )
-    cached = result.scalar_one_or_none()
-    if cached and (now - cached.fetched_at) < CACHE_TTL:
-        return {"price_usd": cached.price_usd, "image_url": cached.image_url}
-
-    # Fetch price from Steam
-    price = None
-    try:
-        resp = await client.get(
-            STEAM_PRICE_URL,
-            params={"appid": 730, "currency": 1, "market_hash_name": name},
-            timeout=10,
-        )
-        data = resp.json()
-        if data.get("success") and data.get("lowest_price"):
-            price = float(
-                data["lowest_price"].replace("$", "").replace(",", "").strip()
-            )
-    except Exception:
-        pass
-
-    image_url = await fetch_item_image(client, name)
-
-    # Upsert cache
-    if cached:
-        cached.price_usd = price
-        cached.image_url = image_url
-        cached.fetched_at = now
-    else:
-        session.add(PriceCache(
-            market_hash_name=name,
-            price_usd=price,
-            image_url=image_url,
-            fetched_at=now,
-        ))
-
-    # Write history point
-    if price:
-        session.add(PriceHistory(
-            market_hash_name=name,
-            price_usd=price,
-            recorded_at=now,
-        ))
-
-    await session.commit()
-    return {"price_usd": price, "image_url": image_url}
-
-
 async def fetch_steam_inventory(client: httpx.AsyncClient, steam_id: str) -> list:
     try:
         resp = await client.get(
             STEAM_INVENTORY_URL.format(steam_id=steam_id),
-            params={"l": "english", "count": 100},
-            timeout=15,
+            params={"l": "english", "count": 100}, timeout=15,
             headers={"User-Agent": "Mozilla/5.0"},
         )
         try:
             data = resp.json()
         except Exception:
             data = None
-
         if data is None:
             raise HTTPException(
                 status_code=502,
-                detail=(
-                    f"Steam вернул некорректный ответ (статус {resp.status_code}). "
-                    "Инвентарь может быть закрытым или Steam ограничивает запросы."
-                ),
+                detail=f"Steam вернул некорректный ответ (статус {resp.status_code}).",
             )
-
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Ошибка Steam API: {e}")
 
     if not data.get("success", False) and data.get("Error"):
-        raise HTTPException(
-            status_code=404,
-            detail="Инвентарь закрыт или SteamID не найден",
-        )
+        raise HTTPException(status_code=404, detail="Инвентарь закрыт или SteamID не найден")
 
     descriptions = {
         f"{d['classid']}_{d['instanceid']}": d
@@ -204,8 +315,7 @@ async def fetch_steam_inventory(client: httpx.AsyncClient, steam_id: str) -> lis
         items.append({
             "market_hash_name": name,
             "image_url": STEAM_CDN + icon if icon else None,
-            "rarity": rarity,
-            "wear": wear,
+            "rarity": rarity, "wear": wear,
             "tradable": desc.get("tradable", 0) == 1,
         })
     return items
@@ -218,12 +328,8 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="SkinVault API", lifespan=lifespan)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
 
 # ── Schemas ────────────────────────────────────────────────────────────────
 class AddItemRequest(BaseModel):
@@ -231,13 +337,16 @@ class AddItemRequest(BaseModel):
     market_hash_name: str
     buy_price: float
     quantity: int = 1
+    buy_source: str = "steam"   # steam | lisskins | market_csgo
 
 class UpdateItemRequest(BaseModel):
     buy_price: float
     quantity: int = 1
+    buy_source: str = "steam"
 
 
 # ── Routes ─────────────────────────────────────────────────────────────────
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
@@ -245,22 +354,12 @@ async def health():
 
 @app.get("/api/resolve/{vanity_url}")
 async def resolve_vanity(vanity_url: str):
-    """Резолвит кастомный URL Steam (username) в SteamID64."""
     if vanity_url.isdigit():
         return {"vanity_url": vanity_url, "steam_id": vanity_url}
-
     async with httpx.AsyncClient() as client:
         resolved = await resolve_steam_id(client, vanity_url)
-
     if not resolved.isdigit():
-        raise HTTPException(
-            status_code=404,
-            detail=(
-                f"Не удалось найти Steam-аккаунт '{vanity_url}'. "
-                "Проверьте правильность имени пользователя."
-            ),
-        )
-
+        raise HTTPException(status_code=404, detail=f"Steam-аккаунт '{vanity_url}' не найден.")
     return {"vanity_url": vanity_url, "steam_id": resolved}
 
 
@@ -270,10 +369,8 @@ async def search_items(q: str = Query(..., min_length=2)):
         try:
             resp = await client.get(
                 STEAM_SEARCH_URL,
-                params={
-                    "appid": 730, "query": q, "count": 10,
-                    "search_descriptions": 0, "norender": 1,
-                },
+                params={"appid": 730, "query": q, "count": 10,
+                        "search_descriptions": 0, "norender": 1},
                 timeout=10,
             )
             data = resp.json()
@@ -298,28 +395,16 @@ async def get_price(
     session: AsyncSession = Depends(get_session),
 ):
     async with httpx.AsyncClient() as client:
-        return await fetch_market_price(client, market_hash_name, session)
+        return await fetch_all_prices(client, market_hash_name, session)
 
 
 @app.get("/api/inventory/{steam_id}")
 async def get_inventory(steam_id: str):
     async with httpx.AsyncClient() as client:
         resolved = await resolve_steam_id(client, steam_id)
-
-        # ── ИСПРАВЛЕНИЕ: проверяем что резолвинг прошёл успешно ──────────
         if not resolved.isdigit():
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"Не удалось определить SteamID64 для '{steam_id}'. "
-                    "Передайте числовой SteamID64 напрямую или укажите корректный "
-                    "username. Если проблема повторяется — добавьте переменную "
-                    "окружения STEAM_API_KEY."
-                ),
-            )
-
+            raise HTTPException(status_code=400, detail=f"Не удалось определить SteamID64 для '{steam_id}'.")
         items = await fetch_steam_inventory(client, resolved)
-
     return {"steam_id": resolved, "items": items, "count": len(items)}
 
 
@@ -330,12 +415,8 @@ async def get_portfolio(
 ):
     async with httpx.AsyncClient() as client:
         steam_id = await resolve_steam_id(client, steam_id)
-
     if not steam_id.isdigit():
-        raise HTTPException(
-            status_code=400,
-            detail=f"Не удалось определить SteamID64 для указанного пользователя.",
-        )
+        raise HTTPException(status_code=400, detail="Не удалось определить SteamID64.")
 
     result = await session.execute(
         select(Portfolio)
@@ -346,7 +427,7 @@ async def get_portfolio(
 
     async with httpx.AsyncClient() as client:
         prices = await asyncio.gather(*[
-            fetch_market_price(client, r.market_hash_name, session)
+            fetch_all_prices(client, r.market_hash_name, session)
             for r in rows
         ])
 
@@ -354,39 +435,50 @@ async def get_portfolio(
     total_current = total_invested = 0.0
 
     for row, pd in zip(rows, prices):
-        current  = pd.get("price_usd") or 0.0
+        # P&L считаем относительно текущей цены на том маркете где покупали
+        source_price_key = f"price_{row.buy_source}" if row.buy_source in ("steam", "lisskins", "market_csgo") else "price_steam"
+        current_on_source = pd.get(source_price_key) or pd.get("best_price") or 0.0
+        best_price = pd.get("best_price") or 0.0
+
         invested = row.buy_price * row.quantity
-        value    = current * row.quantity
+        value    = best_price * row.quantity      # стоимость по лучшей текущей цене
         pnl      = value - invested
         pnl_pct  = (pnl / invested * 100) if invested > 0 else 0.0
         total_current  += value
         total_invested += invested
+
         items.append({
-            "market_hash_name": row.market_hash_name,
-            "buy_price":        row.buy_price,
-            "quantity":         row.quantity,
-            "current_price":    round(current, 2),
-            "total_value":      round(value, 2),
-            "invested":         round(invested, 2),
-            "pnl":              round(pnl, 2),
-            "pnl_pct":          round(pnl_pct, 1),
-            "image_url":        pd.get("image_url"),
-            "wear":             "",
-            "rarity":           "",
-            "added_at":         row.added_at,
+            "market_hash_name":  row.market_hash_name,
+            "buy_price":         row.buy_price,
+            "buy_source":        row.buy_source,
+            "quantity":          row.quantity,
+            # цены по всем источникам
+            "price_steam":       pd.get("price_steam"),
+            "price_lisskins":    pd.get("price_lisskins"),
+            "price_market_csgo": pd.get("price_market_csgo"),
+            "best_price":        round(best_price, 2),
+            "best_source":       pd.get("best_source"),
+            # для обратной совместимости с фронтом
+            "current_price":     round(best_price, 2),
+            "total_value":       round(value, 2),
+            "invested":          round(invested, 2),
+            "pnl":               round(pnl, 2),
+            "pnl_pct":           round(pnl_pct, 1),
+            "image_url":         pd.get("image_url"),
+            "wear":              "",
+            "rarity":            "",
+            "added_at":          row.added_at,
         })
 
     total_pnl = total_current - total_invested
     return {
         "steam_id": steam_id,
-        "items":    items,
+        "items": items,
         "summary": {
             "total_value":    round(total_current, 2),
             "total_invested": round(total_invested, 2),
             "total_pnl":      round(total_pnl, 2),
-            "total_pnl_pct":  round(
-                (total_pnl / total_invested * 100) if total_invested > 0 else 0, 1
-            ),
+            "total_pnl_pct":  round((total_pnl / total_invested * 100) if total_invested > 0 else 0, 1),
         },
     }
 
@@ -398,12 +490,8 @@ async def add_item(
 ):
     async with httpx.AsyncClient() as client:
         resolved_id = await resolve_steam_id(client, req.steam_id)
-
     if not resolved_id.isdigit():
-        raise HTTPException(
-            status_code=400,
-            detail=f"Не удалось определить SteamID64 для '{req.steam_id}'.",
-        )
+        raise HTTPException(status_code=400, detail=f"Не удалось определить SteamID64 для '{req.steam_id}'.")
 
     result = await session.execute(
         select(Portfolio).where(
@@ -415,14 +503,16 @@ async def add_item(
     now = int(time.time())
 
     if existing:
-        existing.buy_price = req.buy_price
-        existing.quantity  = req.quantity
+        existing.buy_price  = req.buy_price
+        existing.quantity   = req.quantity
+        existing.buy_source = req.buy_source
     else:
         session.add(Portfolio(
             steam_id=resolved_id,
             market_hash_name=req.market_hash_name,
             buy_price=req.buy_price,
             quantity=req.quantity,
+            buy_source=req.buy_source,
             added_at=now,
         ))
 
@@ -439,14 +529,10 @@ async def update_item(
 ):
     async with httpx.AsyncClient() as client:
         steam_id = await resolve_steam_id(client, steam_id)
-
     await session.execute(
         update(Portfolio)
-        .where(
-            Portfolio.steam_id == steam_id,
-            Portfolio.market_hash_name == market_hash_name,
-        )
-        .values(buy_price=req.buy_price, quantity=req.quantity)
+        .where(Portfolio.steam_id == steam_id, Portfolio.market_hash_name == market_hash_name)
+        .values(buy_price=req.buy_price, quantity=req.quantity, buy_source=req.buy_source)
     )
     await session.commit()
     return {"ok": True}
@@ -460,7 +546,6 @@ async def remove_item(
 ):
     async with httpx.AsyncClient() as client:
         steam_id = await resolve_steam_id(client, steam_id)
-
     await session.execute(
         delete(Portfolio).where(
             Portfolio.steam_id == steam_id,
@@ -485,10 +570,7 @@ async def get_price_history(
     rows = result.scalars().all()
     return {
         "market_hash_name": market_hash_name,
-        "history": [
-            {"price_usd": r.price_usd, "recorded_at": r.recorded_at}
-            for r in rows
-        ],
+        "history": [{"price_usd": r.price_usd, "recorded_at": r.recorded_at} for r in rows],
     }
 
 
