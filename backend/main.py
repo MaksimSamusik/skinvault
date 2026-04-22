@@ -435,13 +435,20 @@ async def get_portfolio(
     total_current = total_invested = 0.0
 
     for row, pd in zip(rows, prices):
-        # P&L и current_price — строго по платформе покупки (buy_source)
+        # buy_source может быть None в старых записях БД (до миграции) — нормализуем
+        buy_source = (row.buy_source or "steam").strip().lower()
         valid_sources = ("steam", "lisskins", "market_csgo")
-        source_key = f"price_{row.buy_source}" if row.buy_source in valid_sources else "price_steam"
+        if buy_source not in valid_sources:
+            buy_source = "steam"
 
-        # Текущая цена на той же платформе, где покупали
-        # Фоллбэк: если платформа временно не отдаёт цену — берём best_price
-        current_on_source = pd.get(source_key) or pd.get("best_price") or 0.0
+        source_key = f"price_{buy_source}"
+
+        # Текущая цена на той же платформе, где покупали.
+        # Если платформа вернула None (временно недоступна) — берём best_price как фоллбэк.
+        current_on_source = pd.get(source_key)
+        if current_on_source is None or current_on_source <= 0:
+            current_on_source = pd.get("best_price") or 0.0
+
         best_price = pd.get("best_price") or 0.0
 
         invested = row.buy_price * row.quantity
@@ -455,7 +462,7 @@ async def get_portfolio(
         items.append({
             "market_hash_name":   row.market_hash_name,
             "buy_price":          row.buy_price,
-            "buy_source":         row.buy_source,
+            "buy_source":         buy_source,           # нормализованный
             "quantity":           row.quantity,
             # цены по всем источникам
             "price_steam":        pd.get("price_steam"),

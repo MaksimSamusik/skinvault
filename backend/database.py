@@ -1,4 +1,5 @@
 import os
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from models import Base
 from dotenv import load_dotenv
@@ -33,6 +34,23 @@ AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        # Миграция: добавить колонку buy_source если её нет в таблице
+        # (нужно для уже существующих БД, созданных до этого поля)
+        if IS_POSTGRES:
+            await conn.execute(text("""
+                ALTER TABLE portfolios
+                ADD COLUMN IF NOT EXISTS buy_source VARCHAR(32) DEFAULT 'steam' NOT NULL
+            """))
+        else:
+            # SQLite не поддерживает IF NOT EXISTS в ALTER TABLE
+            # Проверяем через PRAGMA
+            result = await conn.execute(text("PRAGMA table_info(portfolios)"))
+            columns = [row[1] for row in result.fetchall()]
+            if "buy_source" not in columns:
+                await conn.execute(text(
+                    "ALTER TABLE portfolios ADD COLUMN buy_source VARCHAR(32) DEFAULT 'steam' NOT NULL"
+                ))
 
 
 async def get_session() -> AsyncSession:
