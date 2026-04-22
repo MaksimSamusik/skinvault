@@ -4,20 +4,19 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
-    volumes:
-      - ./data:/app/data
+    env_file:
+      - ./backend/.env
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - DB_PATH=/app/data/skinvault.db
-      - STEAM_API_KEY=${STEAM_API_KEY}
+      - STEAM_API_KEY=${STEAM_API_KEY:-}
     restart: unless-stopped
 
   bot:
     build: ./backend
     command: python bot.py
+    env_file:
+      - ./backend/.env
     environment:
-      - BOT_TOKEN=${BOT_TOKEN}
-      - WEBAPP_URL=${WEBAPP_URL}
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
       - api
