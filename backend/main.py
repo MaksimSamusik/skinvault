@@ -435,39 +435,44 @@ async def get_portfolio(
     total_current = total_invested = 0.0
 
     for row, pd in zip(rows, prices):
-        # P&L считаем относительно текущей цены на том маркете где покупали
-        source_price_key = f"price_{row.buy_source}" if row.buy_source in ("steam", "lisskins", "market_csgo") else "price_steam"
-        current_on_source = pd.get(source_price_key) or pd.get("best_price") or 0.0
+        # P&L и current_price — строго по платформе покупки (buy_source)
+        valid_sources = ("steam", "lisskins", "market_csgo")
+        source_key = f"price_{row.buy_source}" if row.buy_source in valid_sources else "price_steam"
+
+        # Текущая цена на той же платформе, где покупали
+        # Фоллбэк: если платформа временно не отдаёт цену — берём best_price
+        current_on_source = pd.get(source_key) or pd.get("best_price") or 0.0
         best_price = pd.get("best_price") or 0.0
 
         invested = row.buy_price * row.quantity
-        value    = best_price * row.quantity      # стоимость по лучшей текущей цене
+        # Стоимость и P&L — от цены на платформе покупки
+        value    = current_on_source * row.quantity
         pnl      = value - invested
         pnl_pct  = (pnl / invested * 100) if invested > 0 else 0.0
         total_current  += value
         total_invested += invested
 
         items.append({
-            "market_hash_name":  row.market_hash_name,
-            "buy_price":         row.buy_price,
-            "buy_source":        row.buy_source,
-            "quantity":          row.quantity,
+            "market_hash_name":   row.market_hash_name,
+            "buy_price":          row.buy_price,
+            "buy_source":         row.buy_source,
+            "quantity":           row.quantity,
             # цены по всем источникам
-            "price_steam":       pd.get("price_steam"),
-            "price_lisskins":    pd.get("price_lisskins"),
-            "price_market_csgo": pd.get("price_market_csgo"),
-            "best_price":        round(best_price, 2),
-            "best_source":       pd.get("best_source"),
-            # для обратной совместимости с фронтом
-            "current_price":     round(best_price, 2),
-            "total_value":       round(value, 2),
-            "invested":          round(invested, 2),
-            "pnl":               round(pnl, 2),
-            "pnl_pct":           round(pnl_pct, 1),
-            "image_url":         pd.get("image_url"),
-            "wear":              "",
-            "rarity":            "",
-            "added_at":          row.added_at,
+            "price_steam":        pd.get("price_steam"),
+            "price_lisskins":     pd.get("price_lisskins"),
+            "price_market_csgo":  pd.get("price_market_csgo"),
+            "best_price":         round(best_price, 2),
+            "best_source":        pd.get("best_source"),
+            # current_price = цена именно на платформе покупки
+            "current_price":      round(current_on_source, 2),
+            "total_value":        round(value, 2),
+            "invested":           round(invested, 2),
+            "pnl":                round(pnl, 2),
+            "pnl_pct":            round(pnl_pct, 1),
+            "image_url":          pd.get("image_url"),
+            "wear":               "",
+            "rarity":             "",
+            "added_at":           row.added_at,
         })
 
     total_pnl = total_current - total_invested

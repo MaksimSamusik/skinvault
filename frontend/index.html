@@ -433,6 +433,7 @@ let searchTimeout = null;
 let pendingSkin = null;
 let currentRankData = null;
 let selectedBuySource = 'steam';
+let pendingPriceData = null;  // хранит цены текущего выбранного скина
 
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0a0e1a'); tg.setBackgroundColor('#060912'); }
@@ -774,6 +775,25 @@ function selectSource(btn) {
   document.querySelectorAll('.source-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   selectedBuySource = btn.dataset.source;
+
+  // Обновляем placeholder цены под выбранную платформу
+  if (pendingPriceData) {
+    const priceMap = {
+      steam:       pendingPriceData.price_steam,
+      lisskins:    pendingPriceData.price_lisskins,
+      market_csgo: pendingPriceData.price_market_csgo,
+    };
+    const p = priceMap[selectedBuySource];
+    const inp = document.getElementById('buyPrice');
+    inp.placeholder = (p != null) ? p.toFixed(2) : '0.00';
+
+    // Подсвечиваем цену выбранной платформы
+    document.querySelectorAll('.price-tag-item').forEach(el => {
+      const isActive = el.dataset.src === selectedBuySource;
+      el.style.color = isActive ? 'var(--amber)' : 'var(--muted)';
+      el.style.border = isActive ? '1px solid var(--amber)' : '1px solid transparent';
+    });
+  }
 }
 
 // ── Search ─────────────────────────────────────────────────────────────────────
@@ -799,29 +819,54 @@ async function doSearch(q) {
 
 async function selectSkin(skin) {
   pendingSkin = skin;
+  pendingPriceData = null;
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('skinSearch').value = skin.name||skin.market_hash_name;
-  let priceData = null;
   try {
-    priceData = await apiFetch(`/api/price/${encodeURIComponent(skin.market_hash_name)}`);
-    if (priceData?.image_url) pendingSkin.image_url = priceData.image_url || skin.image_url;
+    pendingPriceData = await apiFetch(`/api/price/${encodeURIComponent(skin.market_hash_name)}`);
+    if (pendingPriceData?.image_url) pendingSkin.image_url = pendingPriceData.image_url || skin.image_url;
   } catch(_) {}
+
+  const fmt = v => v != null ? '$'+v.toFixed(2) : '—';
+  const pd = pendingPriceData;
+
+  // Подставляем placeholder = цена выбранной платформы
+  const priceMap = {
+    steam:       pd?.price_steam,
+    lisskins:    pd?.price_lisskins,
+    market_csgo: pd?.price_market_csgo,
+  };
+  const srcPrice = priceMap[selectedBuySource];
+  const inp = document.getElementById('buyPrice');
+  inp.placeholder = (srcPrice != null) ? srcPrice.toFixed(2) : (pd?.best_price ? pd.best_price.toFixed(2) : '0.00');
+
   const img = pendingSkin.image_url
     ? `<img class="selected-thumb" src="${pendingSkin.image_url}"/>`
     : `<div class="selected-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px">⬡</div>`;
-  const fmt = v => v != null ? '$'+v.toFixed(2) : '—';
+
+  // Подсвечиваем активную платформу в превью цен
+  const tagStyle = (src) => {
+    const active = src === selectedBuySource;
+    return `data-src="${src}" class="price-tag-item" style="font-family:var(--mono);font-size:9px;background:var(--bg3);border-radius:3px;padding:2px 6px;border:1px solid ${active ? 'var(--amber)' : 'transparent'};color:${active ? 'var(--amber)' : 'var(--muted)'};cursor:pointer" onclick="selectSourceByKey('${src}')"`;
+  };
+
   document.getElementById('selectedSkinPreview').innerHTML = `
     ${img}
     <div style="flex:1;min-width:0">
       <div class="selected-name">${skin.name||skin.market_hash_name}</div>
       <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">
-        <span style="font-family:var(--mono);font-size:9px;background:var(--bg3);border-radius:3px;padding:2px 6px;color:var(--muted)">STM ${fmt(priceData?.price_steam)}</span>
-        <span style="font-family:var(--mono);font-size:9px;background:var(--bg3);border-radius:3px;padding:2px 6px;color:var(--muted)">LIS ${fmt(priceData?.price_lisskins)}</span>
-        <span style="font-family:var(--mono);font-size:9px;background:var(--bg3);border-radius:3px;padding:2px 6px;color:var(--muted)">MKT ${fmt(priceData?.price_market_csgo)}</span>
+        <span ${tagStyle('steam')}>STM ${fmt(pd?.price_steam)}</span>
+        <span ${tagStyle('lisskins')}>LIS ${fmt(pd?.price_lisskins)}</span>
+        <span ${tagStyle('market_csgo')}>MKT ${fmt(pd?.price_market_csgo)}</span>
       </div>
     </div>`;
-  if (priceData?.best_price) document.getElementById('buyPrice').placeholder = priceData.best_price.toFixed(2);
   document.getElementById('addForm').style.display = 'block';
+}
+
+// Позволяет кликнуть на ценовой тег в превью — выбрать платформу
+function selectSourceByKey(src) {
+  const btn = document.querySelector(`.source-btn[data-source="${src}"]`);
+  if (btn) selectSource(btn);
 }
 
 async function submitAddItem() {
