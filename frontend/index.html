@@ -38,520 +38,205 @@
   --r: 8px;
   --r2: 12px;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 13px; overscroll-behavior: none; }
-body { display: flex; flex-direction: column; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;overscroll-behavior:none}
+body{display:flex;flex-direction:column}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:2px}
 
-/* ─── SCROLLBAR ─── */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 2px; }
+/* HEADER */
+.header{background:var(--bg1);border-bottom:1px solid var(--line);padding:10px 14px 8px;flex-shrink:0}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-icon{width:26px;height:26px;background:var(--amber2);clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;color:#000}
+.logo-text{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:1px;color:var(--text)}
+.logo-text span{color:var(--amber)}
+.logo-badge{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 6px;border-radius:3px;border:1px solid var(--muted2);color:var(--muted);letter-spacing:1px}
+.live-dot{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:.5px}
+.live-dot::before{content:'';width:5px;height:5px;background:var(--green2);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.steam-row{display:flex;gap:6px}
+.steam-input{flex:1;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:8px 11px;color:var(--text);font-size:12px;font-family:var(--mono);outline:none;transition:border-color .2s}
+.steam-input:focus{border-color:var(--amber)}
+.steam-input::placeholder{color:var(--muted)}
+.btn-load{background:var(--amber2);color:#000;border:none;border-radius:var(--r);padding:8px 14px;font-size:12px;font-weight:700;font-family:var(--sans);cursor:pointer;letter-spacing:.3px;transition:opacity .15s,transform .1s}
+.btn-load:active{opacity:.8;transform:scale(.97)}
 
-/* ─── HEADER ─── */
-.header {
-  background: var(--bg1);
-  border-bottom: 1px solid var(--line);
-  padding: 10px 14px 8px;
-  flex-shrink: 0;
-}
-.header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 9px;
-}
-.logo { display: flex; align-items: center; gap: 9px; }
-.logo-icon {
-  width: 26px; height: 26px;
-  background: var(--amber2);
-  clip-path: polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); font-size: 10px; font-weight: 700; color: #000;
-}
-.logo-text {
-  font-family: var(--mono);
-  font-size: 13px; font-weight: 700; letter-spacing: 1px; color: var(--text);
-}
-.logo-text span { color: var(--amber); }
-.logo-badge {
-  font-family: var(--mono);
-  font-size: 9px; font-weight: 600;
-  padding: 2px 6px; border-radius: 3px;
-  border: 1px solid var(--muted2);
-  color: var(--muted); letter-spacing: 1px;
-}
-.live-dot {
-  display: flex; align-items: center; gap: 5px;
-  font-family: var(--mono); font-size: 10px; color: var(--green); letter-spacing: 0.5px;
-}
-.live-dot::before {
-  content: ''; width: 5px; height: 5px;
-  background: var(--green2); border-radius: 50%;
-  animation: blink 2s infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+/* CAREER BANNER */
+.career-banner{margin:8px 14px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;position:relative;cursor:pointer;transition:border-color .2s}
+.career-banner:active{border-color:var(--amber)}
+.career-banner::before{content:'';position:absolute;inset:0;background:var(--banner-glow,transparent);pointer-events:none}
+.career-inner{display:flex;align-items:center}
+.career-char{width:80px;height:80px;flex-shrink:0}
+.career-char svg{width:100%;height:100%}
+.career-info{flex:1;padding:10px 12px 10px 2px}
+.career-rank-label{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
+.career-rank-name{font-size:16px;font-weight:700;margin-bottom:6px}
+.career-progress-bg{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.career-progress-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.career-progress-labels{display:flex;justify-content:space-between;margin-top:4px}
+.career-progress-pct{font-family:var(--mono);font-size:10px;font-weight:600}
+.career-progress-next{font-family:var(--mono);font-size:10px;color:var(--muted)}
 
-.steam-row { display: flex; gap: 6px; }
-.steam-input {
-  flex: 1;
-  background: var(--bg3);
-  border: 1px solid var(--line2);
-  border-radius: var(--r);
-  padding: 8px 11px;
-  color: var(--text);
-  font-size: 12px; font-family: var(--mono);
-  outline: none;
-  transition: border-color .2s;
-}
-.steam-input:focus { border-color: var(--amber); }
-.steam-input::placeholder { color: var(--muted); }
-.btn-load {
-  background: var(--amber2);
-  color: #000;
-  border: none;
-  border-radius: var(--r);
-  padding: 8px 14px;
-  font-size: 12px; font-weight: 700; font-family: var(--sans);
-  cursor: pointer; letter-spacing: 0.3px;
-  transition: opacity .15s, transform .1s;
-}
-.btn-load:active { opacity: .8; transform: scale(.97); }
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 14px 8px;flex-shrink:0}
+.stat-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.stat-label{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:5px}
+.stat-value{font-size:20px;font-weight:700;line-height:1}
+.stat-sub{font-family:var(--mono);font-size:10px;margin-top:3px}
+.c-amber{color:var(--amber)}
+.c-green{color:var(--green2)}
+.c-red{color:var(--red2)}
+.c-muted{color:var(--muted)}
+.c-purple{color:var(--purple)}
+.c-blue{color:var(--blue)}
 
-/* ─── CAREER BANNER ─── */
-.career-banner {
-  margin: 8px 14px;
-  background: var(--bg2);
-  border: 1px solid var(--line2);
-  border-radius: var(--r2);
-  overflow: hidden;
-  position: relative;
-  cursor: pointer;
-  transition: border-color .2s;
-}
-.career-banner:active { border-color: var(--amber); }
-.career-banner::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: var(--banner-glow, transparent);
-  pointer-events: none;
-}
-.career-inner { display: flex; align-items: center; }
-.career-char { width: 80px; height: 80px; flex-shrink: 0; }
-.career-char svg { width: 100%; height: 100%; }
-.career-info { flex: 1; padding: 10px 12px 10px 2px; }
-.career-rank-label {
-  font-family: var(--mono); font-size: 9px;
-  color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;
-}
-.career-rank-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-.career-progress-wrap { }
-.career-progress-bg {
-  height: 3px; background: var(--bg4); border-radius: 2px; overflow: hidden;
-}
-.career-progress-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
-.career-progress-labels { display: flex; justify-content: space-between; margin-top: 4px; }
-.career-progress-pct { font-family: var(--mono); font-size: 10px; font-weight: 600; }
-.career-progress-next { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-.career-xp-badge {
-  position: absolute; right: 10px; top: 10px;
-  font-family: var(--mono); font-size: 10px; font-weight: 700;
-  padding: 3px 7px; border-radius: 4px;
-}
+/* CHART */
+.chart-wrap{padding:0 14px 8px;flex-shrink:0;display:none}
+.chart-label{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:5px;display:flex;justify-content:space-between}
+.chart-container{height:60px}
+#portfolioChart{width:100%;height:100%}
 
-/* ─── STATS GRID ─── */
-.stats-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 6px; padding: 0 14px 8px; flex-shrink: 0;
-}
-.stat-card {
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  padding: 10px 12px;
-}
-.stat-label {
-  font-family: var(--mono); font-size: 9px;
-  color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 5px;
-}
-.stat-value { font-size: 20px; font-weight: 700; line-height: 1; }
-.stat-sub { font-family: var(--mono); font-size: 10px; margin-top: 3px; }
-.c-amber { color: var(--amber); }
-.c-green { color: var(--green2); }
-.c-red   { color: var(--red2); }
-.c-muted { color: var(--muted); }
-.c-purple{ color: var(--purple); }
-.c-blue  { color: var(--blue); }
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--bg1)}
+.tab{flex:1;padding:9px 0;text-align:center;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.3px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+.tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tab-panel{display:none;padding-bottom:80px}
+.tab-panel.active{display:block}
 
-/* ─── CHART ─── */
-.chart-wrap { padding: 0 14px 8px; flex-shrink: 0; display: none; }
-.chart-label {
-  font-family: var(--mono); font-size: 10px;
-  color: var(--muted); margin-bottom: 5px;
-  display: flex; justify-content: space-between;
-}
-.chart-container { height: 60px; }
-#portfolioChart { width: 100%; height: 100%; }
+/* ITEMS */
+.items-header{padding:9px 14px 5px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.items-header-title{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+.items-count{font-family:var(--mono);font-size:10px;color:var(--blue);background:var(--blue-bg);padding:2px 8px;border-radius:4px;border:1px solid rgba(137,180,250,.15)}
+.item-card{display:grid;grid-template-columns:3px 52px 1fr auto;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s}
+.item-card:active{background:rgba(255,255,255,.03)}
+.item-card.untracked{opacity:.45}
+.item-card.selected{background:var(--amber-bg)}
+.rarity-stripe{width:3px;height:36px;border-radius:2px;flex-shrink:0}
+.item-thumb{width:52px;height:36px;border-radius:5px;background:var(--bg3);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.item-thumb img{width:100%;height:100%;object-fit:contain}
+.item-thumb .img-fallback{font-size:20px}
+.item-info{min-width:0}
+.item-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-tags{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:3px;font-weight:600;letter-spacing:.5px}
+.tag-covert{background:rgba(243,139,168,.12);color:#f38ba8;border:1px solid rgba(243,139,168,.2)}
+.tag-classified{background:rgba(203,166,247,.10);color:#cba6f7;border:1px solid rgba(203,166,247,.2)}
+.tag-restricted{background:rgba(137,180,250,.10);color:#89b4fa;border:1px solid rgba(137,180,250,.2)}
+.tag-mil_spec_grade,.tag-industrial_grade{background:rgba(137,180,250,.07);color:#6a9fd8;border:1px solid rgba(137,180,250,.12)}
+.tag-fn{background:rgba(166,227,161,.10);color:#a6e3a1;border:1px solid rgba(166,227,161,.2)}
+.tag-mw{background:rgba(166,227,161,.07);color:#89c884;border:1px solid rgba(166,227,161,.12)}
+.tag-ft{background:rgba(249,199,79,.08);color:#c9a040;border:1px solid rgba(249,199,79,.15)}
+.tag-ww,.tag-bs{background:rgba(243,139,168,.07);color:#b07070;border:1px solid rgba(243,139,168,.12)}
+.item-right{text-align:right;flex-shrink:0}
+.item-price{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text)}
+.item-pnl{font-family:var(--mono);font-size:10px;margin-top:2px}
+.item-qty{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px}
 
-/* ─── TABS ─── */
-.tabs {
-  display: flex;
-  border-bottom: 1px solid var(--line);
-  flex-shrink: 0;
-  background: var(--bg1);
-}
-.tab {
-  flex: 1; padding: 9px 0;
-  text-align: center;
-  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.3px;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent; margin-bottom: -1px;
-  transition: color .15s;
-}
-.tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+/* DETAIL PANEL */
+.detail-panel{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--line2);border-radius:14px 14px 0 0;padding:0 16px 36px;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);z-index:100;max-height:80vh;overflow-y:auto}
+.detail-panel.open{transform:translateY(0)}
+.detail-drag{width:32px;height:3px;background:var(--muted2);border-radius:2px;margin:10px auto 14px}
+.detail-img-wrap{display:flex;justify-content:center;margin-bottom:12px}
+.detail-img{width:150px;height:100px;object-fit:contain;background:var(--bg3);border-radius:var(--r);border:1px solid var(--line)}
+.detail-name{font-size:14px;font-weight:700;text-align:center;margin-bottom:3px}
+.detail-wear{text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:14px}
+.detail-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.ds-card{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);padding:9px 11px}
+.ds-label{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.ds-val{font-family:var(--mono);font-size:15px;font-weight:700;margin-top:3px}
+.mini-hist{height:52px;margin-bottom:12px}
+.mini-hist svg{width:100%;height:100%}
+.detail-actions{display:flex;gap:6px}
+.btn-del{flex:1;background:var(--red-bg);color:var(--red2);border:1px solid rgba(243,139,168,.18);border-radius:var(--r);padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.btn-close{flex:1;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);border-radius:var(--r);padding:10px;font-size:12px;cursor:pointer;font-family:var(--sans)}
+.btn-track{flex:1;background:var(--amber2);color:#000;border:none;border-radius:var(--r);padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans)}
 
-.scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.tab-panel { display: none; padding-bottom: 80px; }
-.tab-panel.active { display: block; }
+/* PRICES GRID (multi-market) */
+.prices-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px}
+.psg-card{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);padding:7px 8px}
+.psg-card.best{border-color:rgba(0,201,123,.35);background:rgba(0,201,123,.06)}
+.psg-label{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.psg-val{font-family:var(--mono);font-size:12px;font-weight:700}
+.psg-best{font-family:var(--mono);font-size:8px;color:var(--green2);margin-top:2px}
 
-/* ─── ITEMS ─── */
-.items-header {
-  padding: 9px 14px 5px;
-  display: flex; justify-content: space-between; align-items: center;
-  border-bottom: 1px solid var(--line);
-}
-.items-header-title {
-  font-family: var(--mono); font-size: 9px;
-  color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px;
-}
-.items-count {
-  font-family: var(--mono); font-size: 10px;
-  color: var(--blue);
-  background: var(--blue-bg);
-  padding: 2px 8px; border-radius: 4px;
-  border: 1px solid rgba(137,180,250,0.15);
-}
+/* ADD TAB */
+.add-section{padding:12px 14px}
+.section-title{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.search-wrap{position:relative;margin-bottom:8px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none}
+.search-input{width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:9px 12px 9px 32px;color:var(--text);font-size:12px;font-family:var(--mono);outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--amber)}
+.search-results{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;margin-top:4px}
+.sr-item{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .1s}
+.sr-item:last-child{border-bottom:none}
+.sr-item:active{background:var(--bg3)}
+.sr-thumb{width:40px;height:28px;background:var(--bg3);border-radius:4px;object-fit:contain;flex-shrink:0}
+.sr-name{font-size:12px;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.add-form{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);padding:12px;margin-top:8px}
+.form-row{margin-bottom:10px}
+.form-label{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;display:block}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:8px 11px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--amber)}
+.selected-skin{display:flex;align-items:flex-start;gap:10px;padding:6px 0;margin-bottom:8px}
+.selected-thumb{width:48px;height:34px;border-radius:5px;object-fit:contain;background:var(--bg3);flex-shrink:0}
+.selected-name{font-size:12px;font-weight:600}
+.selected-price{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+/* source selector */
+.source-selector{display:flex;gap:5px;margin-bottom:0}
+.source-btn{flex:1;padding:6px 4px;border:1px solid var(--line2);border-radius:var(--r);background:var(--bg3);color:var(--muted);font-family:var(--mono);font-size:10px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;letter-spacing:.3px}
+.source-btn.active{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.btn-add-submit{width:100%;margin-top:10px;background:var(--amber2);color:#000;border:none;border-radius:var(--r);padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);letter-spacing:.3px;transition:opacity .15s}
+.btn-add-submit:active{opacity:.85}
 
-/* TABLE-STYLE ITEM ROW */
-.item-card {
-  display: grid;
-  grid-template-columns: 3px 52px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 14px;
-  border-bottom: 1px solid var(--line);
-  cursor: pointer;
-  transition: background .1s;
-}
-.item-card:active { background: rgba(255,255,255,0.03); }
-.item-card.untracked { opacity: 0.45; }
-.item-card.selected { background: var(--amber-bg); }
-.rarity-stripe { width: 3px; height: 36px; border-radius: 2px; flex-shrink: 0; }
-.item-thumb {
-  width: 52px; height: 36px;
-  border-radius: 5px;
-  background: var(--bg3);
-  flex-shrink: 0; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-}
-.item-thumb img { width: 100%; height: 100%; object-fit: contain; }
-.item-thumb .img-fallback { font-size: 20px; }
-.item-info { min-width: 0; }
-.item-name {
-  font-size: 12px; font-weight: 600; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.item-tags { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; }
-.tag {
-  font-family: var(--mono); font-size: 8px;
-  padding: 1px 5px; border-radius: 3px; font-weight: 600; letter-spacing: 0.5px;
-}
-.tag-covert        { background: rgba(243,139,168,.12); color: #f38ba8; border: 1px solid rgba(243,139,168,.2); }
-.tag-classified    { background: rgba(203,166,247,.10); color: #cba6f7; border: 1px solid rgba(203,166,247,.2); }
-.tag-restricted    { background: rgba(137,180,250,.10); color: #89b4fa; border: 1px solid rgba(137,180,250,.2); }
-.tag-mil_spec_grade,.tag-industrial_grade { background: rgba(137,180,250,.07); color: #6a9fd8; border: 1px solid rgba(137,180,250,.12); }
-.tag-fn  { background: rgba(166,227,161,.10); color: #a6e3a1; border: 1px solid rgba(166,227,161,.2); }
-.tag-mw  { background: rgba(166,227,161,.07); color: #89c884; border: 1px solid rgba(166,227,161,.12); }
-.tag-ft  { background: rgba(249,199,79,.08);  color: #c9a040; border: 1px solid rgba(249,199,79,.15); }
-.tag-ww,.tag-bs { background: rgba(243,139,168,.07); color: #b07070; border: 1px solid rgba(243,139,168,.12); }
+/* CAREER TAB */
+.career-section{padding:12px 14px}
+.rank-track{display:flex;align-items:center;margin-bottom:14px;position:relative}
+.rank-node{display:flex;flex-direction:column;align-items:center;position:relative;flex:1}
+.rank-circle{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;position:relative;z-index:1;transition:transform .2s}
+.rank-circle.done{background:var(--green2)}
+.rank-circle.current{background:var(--amber2);transform:scale(1.15);box-shadow:0 0 0 3px rgba(255,179,0,.2)}
+.rank-circle.locked{background:var(--bg4);border:1px solid var(--line2)}
+.rank-connector{position:absolute;top:17px;left:50%;right:-50%;height:1px;z-index:0}
+.rank-label{font-family:var(--mono);font-size:8px;font-weight:600;color:var(--muted);margin-top:5px;text-align:center;letter-spacing:.5px}
+.rank-label.current-label{color:var(--amber)}
+.career-char-big{display:flex;justify-content:center;margin:4px 0 14px}
+.career-tasks{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.task-item{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.task-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.task-icon.done-icon{background:var(--green-bg)}
+.task-icon.pending-icon{background:var(--amber-bg)}
+.task-icon.locked-icon{background:var(--bg4)}
+.task-info{flex:1}
+.task-name{font-size:12px;font-weight:600}
+.task-prog{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+.task-bar{height:2px;background:var(--bg4);border-radius:1px;margin-top:5px;overflow:hidden}
+.task-bar-fill{height:100%;border-radius:1px;transition:width .5s ease}
 
-.item-right { text-align: right; flex-shrink: 0; }
-.item-price { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text); }
-.item-pnl { font-family: var(--mono); font-size: 10px; margin-top: 2px; }
-.item-qty { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 1px; }
+/* ANALYTICS */
+.analytics-section{padding:12px 14px}
+.top-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.top-item:last-child{border-bottom:none}
+.top-rank{width:18px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0}
+.top-thumb{width:44px;height:32px;border-radius:5px;object-fit:contain;background:var(--bg3);flex-shrink:0}
+.top-info{flex:1;min-width:0}
+.top-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-pnl{font-family:var(--mono);font-size:10px;margin-top:2px}
 
-/* ─── DETAIL PANEL ─── */
-.detail-panel {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--bg2);
-  border-top: 1px solid var(--line2);
-  border-radius: 14px 14px 0 0;
-  padding: 0 16px 36px;
-  transform: translateY(100%);
-  transition: transform .28s cubic-bezier(.32,.72,0,1);
-  z-index: 100; max-height: 80vh; overflow-y: auto;
-}
-.detail-panel.open { transform: translateY(0); }
-.detail-drag {
-  width: 32px; height: 3px;
-  background: var(--muted2); border-radius: 2px;
-  margin: 10px auto 14px;
-}
-.detail-img-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
-.detail-img {
-  width: 150px; height: 100px;
-  object-fit: contain;
-  background: var(--bg3); border-radius: var(--r);
-  border: 1px solid var(--line);
-}
-.detail-name { font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 3px; }
-.detail-wear { text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 14px; }
-.detail-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
-.ds-card {
-  background: var(--bg3);
-  border: 1px solid var(--line);
-  border-radius: var(--r); padding: 9px 11px;
-}
-.ds-label { font-family: var(--mono); font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-.ds-val { font-family: var(--mono); font-size: 15px; font-weight: 700; margin-top: 3px; }
-.mini-hist { height: 52px; margin-bottom: 12px; }
-.mini-hist svg { width: 100%; height: 100%; }
-.detail-actions { display: flex; gap: 6px; }
-.btn-del {
-  flex: 1; background: var(--red-bg); color: var(--red2);
-  border: 1px solid rgba(243,139,168,.18);
-  border-radius: var(--r); padding: 10px;
-  font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--sans);
-}
-.btn-close {
-  flex: 1; background: var(--bg3); color: var(--muted);
-  border: 1px solid var(--line2);
-  border-radius: var(--r); padding: 10px;
-  font-size: 12px; cursor: pointer; font-family: var(--sans);
-}
-.btn-track {
-  flex: 1; background: var(--amber2); color: #000;
-  border: none; border-radius: var(--r); padding: 10px;
-  font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--sans);
-}
-
-/* ─── ADD TAB ─── */
-.add-section { padding: 12px 14px; }
-.section-title {
-  font-family: var(--mono); font-size: 9px; font-weight: 600;
-  color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
-}
-.search-wrap { position: relative; margin-bottom: 8px; }
-.search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%); font-size: 13px; pointer-events: none;
-}
-.search-input {
-  width: 100%;
-  background: var(--bg3); border: 1px solid var(--line2);
-  border-radius: var(--r); padding: 9px 12px 9px 32px;
-  color: var(--text); font-size: 12px; font-family: var(--mono);
-  outline: none; transition: border-color .2s;
-}
-.search-input:focus { border-color: var(--amber); }
-.search-results {
-  background: var(--bg2); border: 1px solid var(--line2);
-  border-radius: var(--r); overflow: hidden; margin-top: 4px;
-}
-.sr-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 12px; cursor: pointer;
-  border-bottom: 1px solid var(--line);
-  transition: background .1s;
-}
-.sr-item:last-child { border-bottom: none; }
-.sr-item:active { background: var(--bg3); }
-.sr-thumb {
-  width: 40px; height: 28px;
-  background: var(--bg3); border-radius: 4px;
-  object-fit: contain; flex-shrink: 0;
-}
-.sr-name {
-  font-size: 12px; color: var(--text);
-  flex: 1; min-width: 0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.add-form {
-  background: var(--bg2); border: 1px solid var(--line2);
-  border-radius: var(--r2); padding: 12px; margin-top: 8px;
-}
-.form-row { margin-bottom: 10px; }
-.form-label {
-  font-family: var(--mono); font-size: 9px; font-weight: 600;
-  color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
-  margin-bottom: 5px; display: block;
-}
-.form-input {
-  width: 100%;
-  background: var(--bg3); border: 1px solid var(--line2);
-  border-radius: var(--r); padding: 8px 11px;
-  color: var(--text); font-size: 13px; font-family: var(--mono);
-  outline: none; transition: border-color .2s;
-}
-.form-input:focus { border-color: var(--amber); }
-.selected-skin { display: flex; align-items: center; gap: 10px; padding: 6px 0; margin-bottom: 8px; }
-.selected-thumb {
-  width: 48px; height: 34px;
-  border-radius: 5px; object-fit: contain;
-  background: var(--bg3);
-}
-.selected-name { font-size: 12px; font-weight: 600; }
-.selected-price { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
-.btn-add-submit {
-  width: 100%; margin-top: 10px;
-  background: var(--amber2); color: #000;
-  border: none; border-radius: var(--r); padding: 11px;
-  font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans);
-  letter-spacing: 0.3px;
-  transition: opacity .15s;
-}
-.btn-add-submit:active { opacity: .85; }
-
-/* ─── CAREER TAB ─── */
-.career-section { padding: 12px 14px; }
-.rank-track {
-  display: flex; align-items: center;
-  margin-bottom: 14px; position: relative;
-}
-.rank-node {
-  display: flex; flex-direction: column; align-items: center;
-  position: relative; flex: 1;
-}
-.rank-circle {
-  width: 34px; height: 34px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; position: relative; z-index: 1;
-  transition: transform .2s;
-}
-.rank-circle.done { background: var(--green2); }
-.rank-circle.current {
-  background: var(--amber2);
-  transform: scale(1.15);
-  box-shadow: 0 0 0 3px rgba(255,179,0,0.2);
-}
-.rank-circle.locked { background: var(--bg4); border: 1px solid var(--line2); }
-.rank-connector {
-  position: absolute; top: 17px; left: 50%; right: -50%;
-  height: 1px; z-index: 0;
-}
-.rank-label {
-  font-family: var(--mono); font-size: 8px; font-weight: 600;
-  color: var(--muted); margin-top: 5px; text-align: center; letter-spacing: 0.5px;
-}
-.rank-label.current-label { color: var(--amber); }
-.career-char-big { display: flex; justify-content: center; margin: 4px 0 14px; }
-.career-tasks { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-.task-item {
-  background: var(--bg2); border: 1px solid var(--line);
-  border-radius: var(--r); padding: 10px 12px;
-  display: flex; align-items: center; gap: 10px;
-}
-.task-icon {
-  width: 26px; height: 26px; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; flex-shrink: 0;
-}
-.task-icon.done-icon    { background: var(--green-bg); }
-.task-icon.pending-icon { background: var(--amber-bg); }
-.task-icon.locked-icon  { background: var(--bg4); }
-.task-info { flex: 1; }
-.task-name { font-size: 12px; font-weight: 600; }
-.task-prog { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
-.task-bar {
-  height: 2px; background: var(--bg4);
-  border-radius: 1px; margin-top: 5px; overflow: hidden;
-}
-.task-bar-fill { height: 100%; border-radius: 1px; transition: width .5s ease; }
-
-/* ─── ANALYTICS ─── */
-.analytics-section { padding: 12px 14px; }
-.top-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 0; border-bottom: 1px solid var(--line);
-}
-.top-item:last-child { border-bottom: none; }
-.top-rank { width: 18px; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
-.top-thumb { width: 44px; height: 32px; border-radius: 5px; object-fit: contain; background: var(--bg3); flex-shrink: 0; }
-.top-info { flex: 1; min-width: 0; }
-.top-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.top-pnl { font-family: var(--mono); font-size: 10px; margin-top: 2px; }
-
-/* ─── EMPTY / LOADING ─── */
-.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
-.empty-icon { font-size: 34px; margin-bottom: 10px; opacity: 0.6; }
-.empty-text { font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--muted); }
-.loading { display: flex; flex-direction: column; align-items: center; padding: 32px; gap: 10px; }
-.spinner {
-  width: 18px; height: 18px;
-  border: 2px solid var(--muted2);
-  border-top-color: var(--amber);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ─── TOAST ─── */
-.toast {
-  position: fixed; top: 12px; left: 50%;
-  transform: translateX(-50%) translateY(-60px);
-  background: var(--bg3);
-  border: 1px solid var(--line2);
-  border-radius: var(--r);
-  padding: 8px 16px;
-  font-family: var(--mono); font-size: 12px; color: var(--text);
-  z-index: 200; transition: transform .25s ease;
-  white-space: nowrap; letter-spacing: 0.3px;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
-
-/* ─── OVERLAY ─── */
-.overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.7); z-index: 90;
-  backdrop-filter: blur(3px);
-}
-.overlay.show { display: block; }
-
-/* ─── MISC ─── */
-.divider { height: 1px; background: var(--line); margin: 0 14px; }
-
-/* Winner/loser accent on career banner area */
-.wl-banner {
-  display: none;
-  margin: 0 14px 8px;
-  border-radius: var(--r);
-  overflow: hidden;
-  border: 1px solid var(--line);
-}
-.wl-half {
-  display: grid; grid-template-columns: 1fr 1fr;
-}
-.wl-side {
-  padding: 8px 10px;
-  background: var(--bg2);
-}
-.wl-side:first-child { border-right: 1px solid var(--line); }
-.wl-side-title {
-  font-family: var(--mono); font-size: 9px; font-weight: 700;
-  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px;
-}
-.wl-side-title.w { color: var(--green2); }
-.wl-side-title.l { color: var(--red2); }
-.wl-row-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 2px 0;
-}
-.wl-row-name {
-  font-size: 11px; color: var(--text2);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 80px;
-}
-.wl-row-chg { font-family: var(--mono); font-size: 10px; font-weight: 600; }
+/* MISC */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-icon{font-size:34px;margin-bottom:10px;opacity:.6}
+.empty-text{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--muted)}
+.loading{display:flex;flex-direction:column;align-items:center;padding:32px;gap:10px}
+.spinner{width:18px;height:18px;border:2px solid var(--muted2);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:8px 16px;font-family:var(--mono);font-size:12px;color:var(--text);z-index:200;transition:transform .25s ease;white-space:nowrap;letter-spacing:.3px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:90;backdrop-filter:blur(3px)}
+.overlay.show{display:block}
+.divider{height:1px;background:var(--line);margin:0 14px}
 </style>
 </head>
 <body>
@@ -571,7 +256,6 @@ body { display: flex; flex-direction: column; }
   </div>
 </div>
 
-<!-- Career banner -->
 <div class="career-banner" id="careerBanner" style="display:none" onclick="switchTabById('career')">
   <div class="career-inner">
     <div class="career-char" id="bannerChar"></div>
@@ -588,47 +272,24 @@ body { display: flex; flex-direction: column; }
         </div>
       </div>
     </div>
-    <div class="career-xp-badge" id="careerXpBadge" style="display:none"></div>
   </div>
 </div>
 
-<div id="portfolioSummary" style="display:none;margin:8px 14px 6px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;">
-  <div style="padding:12px 14px 10px;">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px;">
-      <div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;">СТОИМОСТЬ ПОРТФОЛИО</div>
-        <div id="sumTotal" style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--amber);line-height:1;">—</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px;">P&amp;L</div>
-        <div id="sumPnl" style="font-family:var(--mono);font-size:18px;font-weight:700;line-height:1;">—</div>
-        <div id="sumPnlPct" style="font-family:var(--mono);font-size:11px;margin-top:2px;">—</div>
-      </div>
-    </div>
-    <div style="height:1px;background:var(--line);margin-bottom:10px;"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;">
-      <div style="padding-right:10px;border-right:1px solid var(--line);">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">ВЛОЖЕНО</div>
-        <div id="sumInvested" style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text);">—</div>
-      </div>
-      <div style="padding:0 10px;border-right:1px solid var(--line);text-align:center;">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">ПРЕДМЕТОВ</div>
-        <div id="sumCount" style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--blue);">—</div>
-      </div>
-      <div style="padding-left:10px;text-align:right;">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">ДОХОДНОСТЬ</div>
-        <div id="sumRoi" style="font-family:var(--mono);font-size:13px;font-weight:600;">—</div>
-      </div>
-    </div>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Стоимость</div>
+    <div class="stat-value c-amber" id="statTotal">—</div>
+    <div class="stat-sub c-muted" id="statItems">загрузите портфолио</div>
   </div>
-  <div id="sumProgressBar" style="height:2px;background:var(--bg4);"></div>
+  <div class="stat-card">
+    <div class="stat-label">P&amp;L</div>
+    <div class="stat-value" id="statPnl">—</div>
+    <div class="stat-sub" id="statPnlPct"></div>
+  </div>
 </div>
 
 <div class="chart-wrap" id="chartWrap">
-  <div class="chart-label">
-    <span>ПОРТФОЛИО</span>
-    <span id="chartRange">30D</span>
-  </div>
+  <div class="chart-label"><span>ПОРТФОЛИО</span><span id="chartRange">30D</span></div>
   <div class="chart-container"><svg id="portfolioChart"></svg></div>
 </div>
 
@@ -641,7 +302,6 @@ body { display: flex; flex-direction: column; }
 
 <div class="scroll-area">
 
-  <!-- Portfolio tab -->
   <div class="tab-panel active" id="panel-items">
     <div id="itemsHeader" style="display:none" class="items-header">
       <span class="items-header-title">ИНВЕНТАРЬ</span>
@@ -655,7 +315,6 @@ body { display: flex; flex-direction: column; }
     </div>
   </div>
 
-  <!-- Career tab -->
   <div class="tab-panel" id="panel-career">
     <div class="career-section" id="careerContent">
       <div class="empty">
@@ -665,7 +324,6 @@ body { display: flex; flex-direction: column; }
     </div>
   </div>
 
-  <!-- Add tab -->
   <div class="tab-panel" id="panel-add">
     <div class="add-section">
       <div class="section-title">Поиск скина</div>
@@ -684,6 +342,14 @@ body { display: flex; flex-direction: column; }
           <label class="form-label">Количество</label>
           <input class="form-input" id="buyQty" type="number" min="1" value="1"/>
         </div>
+        <div class="form-row">
+          <label class="form-label">Где купили</label>
+          <div class="source-selector">
+            <button class="source-btn active" data-source="steam" onclick="selectSource(this)">STEAM</button>
+            <button class="source-btn" data-source="lisskins" onclick="selectSource(this)">LISSKINS</button>
+            <button class="source-btn" data-source="market_csgo" onclick="selectSource(this)">MKT.CSGO</button>
+          </div>
+        </div>
         <div class="form-row" style="margin-bottom:0">
           <label class="form-label">Steam ID</label>
           <input class="form-input" id="addSteamId" placeholder="76561198..." inputmode="numeric"/>
@@ -693,7 +359,6 @@ body { display: flex; flex-direction: column; }
     </div>
   </div>
 
-  <!-- Analytics tab -->
   <div class="tab-panel" id="panel-analytics">
     <div class="analytics-section" id="analyticsContent">
       <div class="empty">
@@ -715,198 +380,51 @@ body { display: flex; flex-direction: column; }
 <script>
 // ── Career system ─────────────────────────────────────────────────────────────
 const RANKS = [
-  {
-    id: 'rookie',    name: 'Новичок',  emoji: '🧑‍💻',
-    minPnl: -Infinity, maxPnl: 0,
-    color: '#7a8aaa', glow: 'rgba(122,138,170,0.10)',
-    barColor: '#7a8aaa',
-    tasks: [
-      { name: 'Добавить первый скин', target: 1, field: 'tracked' },
-      { name: 'Отследить 5 предметов', target: 5, field: 'tracked' },
-    ],
-    tip: 'Начни с малого — добавь свои скины и следи за ценами.'
-  },
-  {
-    id: 'analyst',   name: 'Аналитик', emoji: '🧠',
-    minPnl: 0, maxPnl: 50,
-    color: '#89b4fa', glow: 'rgba(137,180,250,0.10)',
-    barColor: '#89b4fa',
-    tasks: [
-      { name: 'Добавить 10 предметов', target: 10, field: 'tracked' },
-      { name: 'Получить P&L > $0', target: 1, field: 'profit' },
-    ],
-    tip: 'Анализируй рынок. Следи за динамикой цен на скины.'
-  },
-  {
-    id: 'trader',    name: 'Трейдер',  emoji: '💸',
-    minPnl: 50, maxPnl: 500,
-    color: '#f9c74f', glow: 'rgba(249,199,79,0.12)',
-    barColor: 'linear-gradient(90deg,#f9c74f,#ffb300)',
-    tasks: [
-      { name: 'P&L больше $50', target: 50, field: 'pnlUsd' },
-      { name: 'Отследить 20 предметов', target: 20, field: 'tracked' },
-      { name: 'Портфолио > $200', target: 200, field: 'totalValue' },
-    ],
-    tip: 'Системность важнее удачи. Диверсифицируй портфолио.'
-  },
-  {
-    id: 'whale',     name: 'Кит',      emoji: '🐋',
-    minPnl: 500, maxPnl: Infinity,
-    color: '#cba6f7', glow: 'rgba(203,166,247,0.12)',
-    barColor: 'linear-gradient(90deg,#cba6f7,#a855f7)',
-    tasks: [
-      { name: 'P&L больше $500', target: 500, field: 'pnlUsd' },
-      { name: 'Портфолио > $1000', target: 1000, field: 'totalValue' },
-    ],
-    tip: 'Ты на вершине. Рынок скинов — твоя стихия.'
-  },
+  { id:'rookie',  name:'Новичок',  emoji:'🧑‍💻', minPnl:-Infinity, maxPnl:0,
+    color:'#7a8aaa', glow:'rgba(122,138,170,0.10)', barColor:'#7a8aaa',
+    tasks:[{name:'Добавить первый скин',target:1,field:'tracked'},{name:'Отследить 5 предметов',target:5,field:'tracked'}],
+    tip:'Начни с малого — добавь свои скины и следи за ценами.' },
+  { id:'analyst', name:'Аналитик', emoji:'🧠', minPnl:0, maxPnl:50,
+    color:'#89b4fa', glow:'rgba(137,180,250,0.10)', barColor:'#89b4fa',
+    tasks:[{name:'Добавить 10 предметов',target:10,field:'tracked'},{name:'Получить P&L > $0',target:1,field:'profit'}],
+    tip:'Анализируй рынок. Следи за динамикой цен на скины.' },
+  { id:'trader',  name:'Трейдер',  emoji:'💸', minPnl:50, maxPnl:500,
+    color:'#f9c74f', glow:'rgba(249,199,79,0.12)', barColor:'linear-gradient(90deg,#f9c74f,#ffb300)',
+    tasks:[{name:'P&L больше $50',target:50,field:'pnlUsd'},{name:'Отследить 20 предметов',target:20,field:'tracked'},{name:'Портфолио > $200',target:200,field:'totalValue'}],
+    tip:'Системность важнее удачи. Диверсифицируй портфолио.' },
+  { id:'whale',   name:'Кит',      emoji:'🐋', minPnl:500, maxPnl:Infinity,
+    color:'#cba6f7', glow:'rgba(203,166,247,0.12)', barColor:'linear-gradient(90deg,#cba6f7,#a855f7)',
+    tasks:[{name:'P&L больше $500',target:500,field:'pnlUsd'},{name:'Портфолио > $1000',target:1000,field:'totalValue'}],
+    tip:'Ты на вершине. Рынок скинов — твоя стихия.' },
 ];
 
 function getRankData(pnl, trackedCount, totalValue) {
-  let rankIdx = 0;
-  if (pnl >= 500) rankIdx = 3;
-  else if (pnl >= 50) rankIdx = 2;
-  else if (pnl >= 0) rankIdx = 1;
-  else rankIdx = 0;
-
-  const rank = RANKS[rankIdx];
-  const next = RANKS[rankIdx + 1];
-
+  let ri = pnl >= 500 ? 3 : pnl >= 50 ? 2 : pnl >= 0 ? 1 : 0;
+  const rank = RANKS[ri], next = RANKS[ri+1];
   let pct = 0;
   if (next) {
     const span = next.minPnl - rank.minPnl;
-    const progress = Math.max(0, pnl - rank.minPnl);
-    pct = Math.min(100, Math.round((progress / span) * 100));
-  } else { pct = 100; }
-
+    pct = Math.min(100, Math.round((Math.max(0, pnl - rank.minPnl) / span) * 100));
+  } else pct = 100;
   const taskProgress = rank.tasks.map(t => {
-    let val = 0;
-    if (t.field === 'tracked') val = trackedCount;
-    else if (t.field === 'pnlUsd') val = Math.max(0, pnl);
-    else if (t.field === 'totalValue') val = totalValue;
-    else if (t.field === 'profit') val = pnl > 0 ? 1 : 0;
+    let val = t.field==='tracked' ? trackedCount : t.field==='pnlUsd' ? Math.max(0,pnl) : t.field==='totalValue' ? totalValue : pnl>0?1:0;
     return { ...t, val: Math.min(val, t.target), done: val >= t.target };
   });
-
-  return { rank, rankIdx, next, pct, taskProgress };
+  return { rank, rankIdx: ri, next, pct, taskProgress };
 }
 
-// ── SVG Characters ────────────────────────────────────────────────────────────
-function charSvg(rankId, size = 88) {
+// ── SVG Characters ─────────────────────────────────────────────────────────────
+function charSvg(rankId, size=88) {
   const chars = {
-    rookie: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="30" y="48" width="28" height="26" rx="6" fill="#2a3550"/>
-      <rect x="28" y="46" width="32" height="20" rx="8" fill="#364060"/>
-      <ellipse cx="44" cy="34" rx="14" ry="15" fill="#f5c8a0"/>
-      <ellipse cx="44" cy="22" rx="14" ry="8" fill="#2a1f0e"/>
-      <rect x="30" y="22" width="28" height="10" rx="2" fill="#2a1f0e"/>
-      <ellipse cx="39" cy="33" rx="2.5" ry="3" fill="#1a1a2e"/>
-      <ellipse cx="49" cy="33" rx="2.5" ry="3" fill="#1a1a2e"/>
-      <ellipse cx="39.8" cy="32.2" rx="1" ry="1" fill="white"/>
-      <ellipse cx="49.8" cy="32.2" rx="1" ry="1" fill="white"/>
-      <path d="M40 39 Q44 42 48 39" stroke="#c0906a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <rect x="27" y="47" width="4" height="18" rx="2" fill="#4a5570"/>
-      <rect x="32" y="70" width="10" height="12" rx="4" fill="#1e2840"/>
-      <rect x="46" y="70" width="10" height="12" rx="4" fill="#1e2840"/>
-      <ellipse cx="37" cy="82" rx="7" ry="3.5" fill="#222"/>
-      <ellipse cx="51" cy="82" rx="7" ry="3.5" fill="#222"/>
-      <ellipse cx="44" cy="85" rx="18" ry="4" fill="#7a8aaa" opacity="0.15"/>
-    </svg>`,
-    analyst: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="44" cy="85" rx="20" ry="5" fill="#89b4fa" opacity="0.2"/>
-      <rect x="29" y="47" width="30" height="26" rx="6" fill="#1a3060"/>
-      <polygon points="44,47 47,55 44,70 41,55" fill="#e05555"/>
-      <polygon points="44,47 38,53 44,56" fill="white" opacity="0.9"/>
-      <polygon points="44,47 50,53 44,56" fill="white" opacity="0.7"/>
-      <ellipse cx="44" cy="33" rx="14" ry="15" fill="#f5c8a0"/>
-      <ellipse cx="44" cy="21" rx="14" ry="8" fill="#1a1208"/>
-      <rect x="30" y="21" width="28" height="10" rx="1" fill="#1a1208"/>
-      <rect x="35" y="30" width="8" height="7" rx="3" fill="none" stroke="#89b4fa" stroke-width="1.5"/>
-      <rect x="45" y="30" width="8" height="7" rx="3" fill="none" stroke="#89b4fa" stroke-width="1.5"/>
-      <line x1="43" y1="33.5" x2="45" y2="33.5" stroke="#89b4fa" stroke-width="1.5"/>
-      <line x1="30" y1="32" x2="35" y2="32" stroke="#89b4fa" stroke-width="1.2"/>
-      <line x1="53" y1="32" x2="58" y2="32" stroke="#89b4fa" stroke-width="1.2"/>
-      <ellipse cx="39" cy="33" rx="2" ry="2.5" fill="#1a1a2e"/>
-      <ellipse cx="49" cy="33" rx="2" ry="2.5" fill="#1a1a2e"/>
-      <path d="M40 39.5 Q44 42 48 39.5" stroke="#c0906a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <rect x="55" y="52" width="14" height="18" rx="2" fill="#111827"/>
-      <rect x="56.5" y="53.5" width="11" height="15" rx="1" fill="#1e3a5f"/>
-      <line x1="58" y1="57" x2="66" y2="57" stroke="#89b4fa" stroke-width="1" opacity="0.7"/>
-      <line x1="58" y1="60" x2="66" y2="60" stroke="#89b4fa" stroke-width="1" opacity="0.5"/>
-      <line x1="58" y1="63" x2="63" y2="63" stroke="#89b4fa" stroke-width="1" opacity="0.4"/>
-      <rect x="31" y="70" width="10" height="12" rx="4" fill="#102040"/>
-      <rect x="47" y="70" width="10" height="12" rx="4" fill="#102040"/>
-      <ellipse cx="36" cy="82" rx="7" ry="3.5" fill="#1a1a2e"/>
-      <ellipse cx="52" cy="82" rx="7" ry="3.5" fill="#1a1a2e"/>
-    </svg>`,
-    trader: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="44" cy="85" rx="22" ry="5" fill="#f9c74f" opacity="0.25"/>
-      <rect x="27" y="45" width="34" height="28" rx="8" fill="#1a1a1a"/>
-      <rect x="27" y="45" width="10" height="28" rx="4" fill="#2a1a00"/>
-      <rect x="51" y="45" width="10" height="28" rx="4" fill="#2a1a00"/>
-      <path d="M36 52 Q44 56 52 52" stroke="#f9c74f" stroke-width="1.5" fill="none" opacity="0.8"/>
-      <circle cx="44" cy="56" r="2" fill="#f9c74f" opacity="0.9"/>
-      <ellipse cx="44" cy="32" rx="14" ry="15" fill="#d4a878"/>
-      <rect x="30" y="26" width="28" height="6" rx="2" fill="#111" opacity="0.9"/>
-      <rect x="33" y="28" width="10" height="6" rx="3" fill="#f9c74f" opacity="0.3"/>
-      <rect x="45" y="28" width="10" height="6" rx="3" fill="#f9c74f" opacity="0.3"/>
-      <rect x="33" y="28" width="10" height="6" rx="3" fill="none" stroke="#f9c74f" stroke-width="1"/>
-      <rect x="45" y="28" width="10" height="6" rx="3" fill="none" stroke="#f9c74f" stroke-width="1"/>
-      <ellipse cx="44" cy="21" rx="14" ry="7" fill="#1a0e00"/>
-      <path d="M30 24 Q44 18 58 24" fill="#1a0e00"/>
-      <path d="M40 40 Q45 43 49 40" stroke="#b07840" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <rect x="16" y="48" width="12" height="8" rx="4" fill="#1a1a1a"/>
-      <rect x="60" y="48" width="12" height="8" rx="4" fill="#1a1a1a"/>
-      <rect x="60" y="52" width="8" height="13" rx="2" fill="#111827"/>
-      <rect x="61" y="53.5" width="6" height="10" rx="1" fill="#f9c74f" opacity="0.3"/>
-      <rect x="30" y="70" width="11" height="13" rx="5" fill="#111"/>
-      <rect x="47" y="70" width="11" height="13" rx="5" fill="#111"/>
-      <ellipse cx="35.5" cy="83" rx="8" ry="3.5" fill="#0a0a0a"/>
-      <ellipse cx="52.5" cy="83" rx="8" ry="3.5" fill="#0a0a0a"/>
-      <circle cx="22" cy="44" r="1.5" fill="#f9c74f" opacity="0.6"/>
-      <circle cx="66" cy="42" r="1" fill="#f9c74f" opacity="0.4"/>
-      <circle cx="18" cy="38" r="1" fill="#f9c74f" opacity="0.3"/>
-    </svg>`,
-    whale: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="44" cy="85" rx="24" ry="6" fill="#cba6f7" opacity="0.3"/>
-      <ellipse cx="44" cy="44" rx="30" ry="30" fill="#cba6f7" opacity="0.04"/>
-      <rect x="30" y="68" width="28" height="16" rx="2" fill="#120c2a"/>
-      <rect x="26" y="44" width="36" height="28" rx="8" fill="#1e1440"/>
-      <rect x="26" y="44" width="13" height="28" rx="6" fill="#281a52"/>
-      <rect x="49" y="44" width="13" height="28" rx="6" fill="#281a52"/>
-      <rect x="38" y="45" width="12" height="22" rx="2" fill="white" opacity="0.9"/>
-      <circle cx="44" cy="50" r="1.5" fill="#f9c74f"/>
-      <circle cx="44" cy="56" r="1.5" fill="#f9c74f"/>
-      <circle cx="44" cy="62" r="1.5" fill="#f9c74f"/>
-      <ellipse cx="44" cy="31" rx="14" ry="15" fill="#e8b888"/>
-      <ellipse cx="44" cy="19" rx="14" ry="8" fill="#0a0a14"/>
-      <path d="M30 22 Q44 16 58 22" fill="#0a0a14"/>
-      <ellipse cx="39" cy="30" rx="2.5" ry="3" fill="#1a0a40"/>
-      <ellipse cx="49" cy="30" rx="2.5" ry="3" fill="#1a0a40"/>
-      <ellipse cx="39.8" cy="29.2" rx="1" ry="1" fill="white"/>
-      <ellipse cx="49.8" cy="29.2" rx="1" ry="1" fill="white"/>
-      <path d="M39 37.5 Q44 41 49 37.5" stroke="#b07840" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-      <rect x="13" y="55" width="10" height="7" rx="2" fill="#f9c74f" opacity="0.9"/>
-      <rect x="14.5" y="56.5" width="7" height="4" rx="1" fill="#1a0a40"/>
-      <rect x="65" y="46" width="3" height="14" rx="1" fill="#cba6f7" opacity="0.6"/>
-      <polygon points="63,46 71,46 68,54 66,54" fill="#cba6f7" opacity="0.4"/>
-      <circle cx="67" cy="44" r="3" fill="#cba6f7" opacity="0.3"/>
-      <rect x="12" y="50" width="15" height="8" rx="4" fill="#281a52"/>
-      <rect x="61" y="50" width="15" height="8" rx="4" fill="#281a52"/>
-      <ellipse cx="36" cy="84" rx="8" ry="3.5" fill="#0a0814"/>
-      <ellipse cx="52" cy="84" rx="8" ry="3.5" fill="#0a0814"/>
-      <circle cx="20" cy="40" r="2" fill="#cba6f7" opacity="0.5"/>
-      <circle cx="68" cy="38" r="2" fill="#cba6f7" opacity="0.4"/>
-      <circle cx="16" cy="32" r="1.5" fill="#cba6f7" opacity="0.3"/>
-      <circle cx="72" cy="45" r="1" fill="#cba6f7" opacity="0.5"/>
-      <path d="M20 37 L21.5 35 L23 37" stroke="#cba6f7" stroke-width="1" fill="none" opacity="0.4"/>
-      <path d="M65 35 L66.5 33 L68 35" stroke="#cba6f7" stroke-width="1" fill="none" opacity="0.4"/>
-    </svg>`,
+    rookie: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none"><rect x="30" y="48" width="28" height="26" rx="6" fill="#2a3550"/><rect x="28" y="46" width="32" height="20" rx="8" fill="#364060"/><ellipse cx="44" cy="34" rx="14" ry="15" fill="#f5c8a0"/><ellipse cx="44" cy="22" rx="14" ry="8" fill="#2a1f0e"/><rect x="30" y="22" width="28" height="10" rx="2" fill="#2a1f0e"/><ellipse cx="39" cy="33" rx="2.5" ry="3" fill="#1a1a2e"/><ellipse cx="49" cy="33" rx="2.5" ry="3" fill="#1a1a2e"/><ellipse cx="39.8" cy="32.2" rx="1" ry="1" fill="white"/><ellipse cx="49.8" cy="32.2" rx="1" ry="1" fill="white"/><path d="M40 39 Q44 42 48 39" stroke="#c0906a" stroke-width="1.5" fill="none" stroke-linecap="round"/><rect x="27" y="47" width="4" height="18" rx="2" fill="#4a5570"/><rect x="32" y="70" width="10" height="12" rx="4" fill="#1e2840"/><rect x="46" y="70" width="10" height="12" rx="4" fill="#1e2840"/><ellipse cx="37" cy="82" rx="7" ry="3.5" fill="#222"/><ellipse cx="51" cy="82" rx="7" ry="3.5" fill="#222"/><ellipse cx="44" cy="85" rx="18" ry="4" fill="#7a8aaa" opacity="0.15"/></svg>`,
+    analyst: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none"><ellipse cx="44" cy="85" rx="20" ry="5" fill="#89b4fa" opacity="0.2"/><rect x="29" y="47" width="30" height="26" rx="6" fill="#1a3060"/><polygon points="44,47 47,55 44,70 41,55" fill="#e05555"/><polygon points="44,47 38,53 44,56" fill="white" opacity="0.9"/><polygon points="44,47 50,53 44,56" fill="white" opacity="0.7"/><ellipse cx="44" cy="33" rx="14" ry="15" fill="#f5c8a0"/><ellipse cx="44" cy="21" rx="14" ry="8" fill="#1a1208"/><rect x="30" y="21" width="28" height="10" rx="1" fill="#1a1208"/><rect x="35" y="30" width="8" height="7" rx="3" fill="none" stroke="#89b4fa" stroke-width="1.5"/><rect x="45" y="30" width="8" height="7" rx="3" fill="none" stroke="#89b4fa" stroke-width="1.5"/><line x1="43" y1="33.5" x2="45" y2="33.5" stroke="#89b4fa" stroke-width="1.5"/><line x1="30" y1="32" x2="35" y2="32" stroke="#89b4fa" stroke-width="1.2"/><line x1="53" y1="32" x2="58" y2="32" stroke="#89b4fa" stroke-width="1.2"/><ellipse cx="39" cy="33" rx="2" ry="2.5" fill="#1a1a2e"/><ellipse cx="49" cy="33" rx="2" ry="2.5" fill="#1a1a2e"/><path d="M40 39.5 Q44 42 48 39.5" stroke="#c0906a" stroke-width="1.5" fill="none" stroke-linecap="round"/><rect x="55" y="52" width="14" height="18" rx="2" fill="#111827"/><rect x="56.5" y="53.5" width="11" height="15" rx="1" fill="#1e3a5f"/><line x1="58" y1="57" x2="66" y2="57" stroke="#89b4fa" stroke-width="1" opacity="0.7"/><line x1="58" y1="60" x2="66" y2="60" stroke="#89b4fa" stroke-width="1" opacity="0.5"/><line x1="58" y1="63" x2="63" y2="63" stroke="#89b4fa" stroke-width="1" opacity="0.4"/><rect x="31" y="70" width="10" height="12" rx="4" fill="#102040"/><rect x="47" y="70" width="10" height="12" rx="4" fill="#102040"/><ellipse cx="36" cy="82" rx="7" ry="3.5" fill="#1a1a2e"/><ellipse cx="52" cy="82" rx="7" ry="3.5" fill="#1a1a2e"/></svg>`,
+    trader: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none"><ellipse cx="44" cy="85" rx="22" ry="5" fill="#f9c74f" opacity="0.25"/><rect x="27" y="45" width="34" height="28" rx="8" fill="#1a1a1a"/><rect x="27" y="45" width="10" height="28" rx="4" fill="#2a1a00"/><rect x="51" y="45" width="10" height="28" rx="4" fill="#2a1a00"/><path d="M36 52 Q44 56 52 52" stroke="#f9c74f" stroke-width="1.5" fill="none" opacity="0.8"/><circle cx="44" cy="56" r="2" fill="#f9c74f" opacity="0.9"/><ellipse cx="44" cy="32" rx="14" ry="15" fill="#d4a878"/><rect x="30" y="26" width="28" height="6" rx="2" fill="#111" opacity="0.9"/><rect x="33" y="28" width="10" height="6" rx="3" fill="#f9c74f" opacity="0.3"/><rect x="45" y="28" width="10" height="6" rx="3" fill="#f9c74f" opacity="0.3"/><rect x="33" y="28" width="10" height="6" rx="3" fill="none" stroke="#f9c74f" stroke-width="1"/><rect x="45" y="28" width="10" height="6" rx="3" fill="none" stroke="#f9c74f" stroke-width="1"/><ellipse cx="44" cy="21" rx="14" ry="7" fill="#1a0e00"/><path d="M30 24 Q44 18 58 24" fill="#1a0e00"/><path d="M40 40 Q45 43 49 40" stroke="#b07840" stroke-width="1.5" fill="none" stroke-linecap="round"/><rect x="16" y="48" width="12" height="8" rx="4" fill="#1a1a1a"/><rect x="60" y="48" width="12" height="8" rx="4" fill="#1a1a1a"/><rect x="60" y="52" width="8" height="13" rx="2" fill="#111827"/><rect x="61" y="53.5" width="6" height="10" rx="1" fill="#f9c74f" opacity="0.3"/><rect x="30" y="70" width="11" height="13" rx="5" fill="#111"/><rect x="47" y="70" width="11" height="13" rx="5" fill="#111"/><ellipse cx="35.5" cy="83" rx="8" ry="3.5" fill="#0a0a0a"/><ellipse cx="52.5" cy="83" rx="8" ry="3.5" fill="#0a0a0a"/><circle cx="22" cy="44" r="1.5" fill="#f9c74f" opacity="0.6"/><circle cx="66" cy="42" r="1" fill="#f9c74f" opacity="0.4"/></svg>`,
+    whale: `<svg width="${size}" height="${size}" viewBox="0 0 88 88" fill="none"><ellipse cx="44" cy="85" rx="24" ry="6" fill="#cba6f7" opacity="0.3"/><rect x="30" y="68" width="28" height="16" rx="2" fill="#120c2a"/><rect x="26" y="44" width="36" height="28" rx="8" fill="#1e1440"/><rect x="26" y="44" width="13" height="28" rx="6" fill="#281a52"/><rect x="49" y="44" width="13" height="28" rx="6" fill="#281a52"/><rect x="38" y="45" width="12" height="22" rx="2" fill="white" opacity="0.9"/><circle cx="44" cy="50" r="1.5" fill="#f9c74f"/><circle cx="44" cy="56" r="1.5" fill="#f9c74f"/><circle cx="44" cy="62" r="1.5" fill="#f9c74f"/><ellipse cx="44" cy="31" rx="14" ry="15" fill="#e8b888"/><ellipse cx="44" cy="19" rx="14" ry="8" fill="#0a0a14"/><path d="M30 22 Q44 16 58 22" fill="#0a0a14"/><ellipse cx="39" cy="30" rx="2.5" ry="3" fill="#1a0a40"/><ellipse cx="49" cy="30" rx="2.5" ry="3" fill="#1a0a40"/><ellipse cx="39.8" cy="29.2" rx="1" ry="1" fill="white"/><ellipse cx="49.8" cy="29.2" rx="1" ry="1" fill="white"/><path d="M39 37.5 Q44 41 49 37.5" stroke="#b07840" stroke-width="1.8" fill="none" stroke-linecap="round"/><rect x="13" y="55" width="10" height="7" rx="2" fill="#f9c74f" opacity="0.9"/><rect x="14.5" y="56.5" width="7" height="4" rx="1" fill="#1a0a40"/><rect x="65" y="46" width="3" height="14" rx="1" fill="#cba6f7" opacity="0.6"/><polygon points="63,46 71,46 68,54 66,54" fill="#cba6f7" opacity="0.4"/><rect x="12" y="50" width="15" height="8" rx="4" fill="#281a52"/><rect x="61" y="50" width="15" height="8" rx="4" fill="#281a52"/><ellipse cx="36" cy="84" rx="8" ry="3.5" fill="#0a0814"/><ellipse cx="52" cy="84" rx="8" ry="3.5" fill="#0a0814"/><circle cx="20" cy="40" r="2" fill="#cba6f7" opacity="0.5"/><circle cx="68" cy="38" r="2" fill="#cba6f7" opacity="0.4"/></svg>`,
   };
   return chars[rankId] || chars.rookie;
 }
 
-// ── Config / State ─────────────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────────
 const API = '';
 let currentSteamId = '';
 let portfolio = [];
@@ -914,32 +432,26 @@ let selectedItem = null;
 let searchTimeout = null;
 let pendingSkin = null;
 let currentRankData = null;
+let selectedBuySource = 'steam';
 
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0a0e1a'); tg.setBackgroundColor('#060912'); }
 
 // ── Rarity ─────────────────────────────────────────────────────────────────────
-const RARITY_COLORS = {
-  covert: '#f38ba8', classified: '#cba6f7', restricted: '#89b4fa',
-  mil_spec_grade: '#6a9fd8', industrial_grade: '#5090c8', extraordinary: '#f9c74f',
-};
+const RARITY_COLORS = { covert:'#f38ba8', classified:'#cba6f7', restricted:'#89b4fa', mil_spec_grade:'#6a9fd8', industrial_grade:'#5090c8', extraordinary:'#f9c74f' };
 const WEAR_SHORT = { 'Factory New':'FN','Minimal Wear':'MW','Field-Tested':'FT','Well-Worn':'WW','Battle-Scarred':'BS',FN:'FN',MW:'MW',FT:'FT',WW:'WW',BS:'BS' };
 function rarityColor(r) { return RARITY_COLORS[r?.toLowerCase()] || '#4a5568'; }
-function wearTag(w) {
-  const s = WEAR_SHORT[w] || w?.slice(0,2) || '';
-  return s ? `<span class="tag tag-${s.toLowerCase()}">${s}</span>` : '';
-}
+function wearTag(w) { const s=WEAR_SHORT[w]||w?.slice(0,2)||''; return s?`<span class="tag tag-${s.toLowerCase()}">${s}</span>`:''; }
 function rarityTag(r) {
   if (!r) return '';
-  const cls = 'tag-' + r.toLowerCase().replace(/\s+/g,'_');
-  const label = r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g,' ');
-  return `<span class="tag ${cls}">${label}</span>`;
+  const cls='tag-'+r.toLowerCase().replace(/\s+/g,'_');
+  return `<span class="tag ${cls}">${r.charAt(0).toUpperCase()+r.slice(1).replace(/_/g,' ')}</span>`;
 }
 
 // ── API ────────────────────────────────────────────────────────────────────────
 async function apiFetch(path, opts={}) {
-  const res = await fetch(API + path, { headers:{'Content-Type':'application/json'}, ...opts });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+  const res = await fetch(API+path, { headers:{'Content-Type':'application/json'}, ...opts });
+  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.detail||`HTTP ${res.status}`); }
   return res.json();
 }
 
@@ -957,16 +469,29 @@ async function loadPortfolio() {
       apiFetch(`/api/inventory/${steamId}`),
       apiFetch(`/api/portfolio/${steamId}`),
     ]);
+
     const portMap = {};
-    for (const item of portData.items) portMap[item.market_hash_name] = item;
-    portfolio = invData.items.map(inv => {
+    for (const item of (portData.items || [])) portMap[item.market_hash_name] = item;
+
+    portfolio = (invData.items || []).map(inv => {
       const saved = portMap[inv.market_hash_name];
       return {
-        market_hash_name: inv.market_hash_name, image_url: inv.image_url,
+        market_hash_name: inv.market_hash_name,
+        image_url: inv.image_url,
         rarity: inv.rarity, wear: inv.wear, tradable: inv.tradable,
-        buy_price: saved?.buy_price ?? null, quantity: saved?.quantity ?? 1,
-        current_price: saved?.current_price ?? 0, total_value: saved?.total_value ?? 0,
-        invested: saved?.invested ?? 0, pnl: saved?.pnl ?? 0, pnl_pct: saved?.pnl_pct ?? 0,
+        buy_price:        saved?.buy_price        ?? null,
+        buy_source:       saved?.buy_source       ?? 'steam',
+        quantity:         saved?.quantity         ?? 1,
+        current_price:    saved?.current_price    ?? 0,
+        best_price:       saved?.best_price       ?? saved?.current_price ?? 0,
+        price_steam:      saved?.price_steam      ?? null,
+        price_lisskins:   saved?.price_lisskins   ?? null,
+        price_market_csgo:saved?.price_market_csgo ?? null,
+        best_source:      saved?.best_source      ?? 'steam',
+        total_value:      saved?.total_value      ?? 0,
+        invested:         saved?.invested         ?? 0,
+        pnl:              saved?.pnl              ?? 0,
+        pnl_pct:          saved?.pnl_pct          ?? 0,
         tracked: !!saved,
       };
     });
@@ -977,16 +502,31 @@ async function loadPortfolio() {
     }
 
     const trackedItems = portfolio.filter(i => i.tracked);
-    renderStats(portData.summary);
+    // ── FIX: guard before calling renderStats ──
+    if (portData.summary) renderStats(portData.summary);
     renderItems(portfolio);
     renderAnalytics(trackedItems.length ? trackedItems : portfolio);
     renderChart(trackedItems.length ? trackedItems : portfolio);
-    updateCareer(portData.summary, trackedItems.length);
+    updateCareer(portData.summary || { total_pnl:0, total_value:0, total_invested:0, total_pnl_pct:0 }, trackedItems.length);
     showToast(`Загружено ${portfolio.length} предметов`);
   } catch(e) {
     showToast('Ошибка: ' + e.message);
     content.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">${e.message}</div></div>`;
   }
+}
+
+// ── Stats ──────────────────────────────────────────────────────────────────────
+function renderStats(s) {
+  if (!s) return;
+  document.getElementById('statTotal').textContent = '$' + (s.total_value||0).toFixed(2);
+  document.getElementById('statItems').textContent = `вложено $${(s.total_invested||0).toFixed(2)}`;
+  const pnlEl = document.getElementById('statPnl');
+  const sign = s.total_pnl >= 0 ? '+' : '';
+  pnlEl.textContent = sign + '$' + Math.abs(s.total_pnl||0).toFixed(2);
+  pnlEl.className = 'stat-value ' + (s.total_pnl >= 0 ? 'c-green' : 'c-red');
+  const pctEl = document.getElementById('statPnlPct');
+  pctEl.textContent = sign + (s.total_pnl_pct||0).toFixed(1) + '%';
+  pctEl.className = 'stat-sub ' + (s.total_pnl >= 0 ? 'c-green' : 'c-red');
 }
 
 // ── Career ─────────────────────────────────────────────────────────────────────
@@ -1009,87 +549,55 @@ function updateCareer(summary, trackedCount) {
   document.getElementById('bannerPct').textContent = pct + '%';
   document.getElementById('bannerPct').style.color = rank.color;
   document.getElementById('bannerNext').textContent = next ? `→ ${next.name} $${next.minPnl}` : 'MAX RANK';
-
   renderCareerTab(rd, pnl, trackedCount, totalValue);
 }
 
 function renderCareerTab(rd, pnl, trackedCount, totalValue) {
   const { rank, rankIdx, next, pct, taskProgress } = rd;
-
   const rankTrack = RANKS.map((r, i) => {
-    let circleClass = 'locked';
-    let labelClass = '';
-    if (i < rankIdx) circleClass = 'done';
-    else if (i === rankIdx) { circleClass = 'current'; labelClass = 'current-label'; }
-    const connector = i < RANKS.length - 1
-      ? `<div class="rank-connector" style="background:${i < rankIdx ? r.color : 'var(--muted2)'}"></div>` : '';
-    return `<div class="rank-node">
-      ${connector}
-      <div class="rank-circle ${circleClass}" style="${circleClass === 'locked' ? '' : `background:${circleClass === 'done' ? r.color : r.color}`}">${r.emoji}</div>
-      <div class="rank-label ${labelClass}">${r.name}</div>
-    </div>`;
+    const cc = i < rankIdx ? 'done' : i === rankIdx ? 'current' : 'locked';
+    const lc = i === rankIdx ? 'current-label' : '';
+    const conn = i < RANKS.length-1 ? `<div class="rank-connector" style="background:${i<rankIdx?r.color:'var(--muted2)'}"></div>` : '';
+    return `<div class="rank-node">${conn}<div class="rank-circle ${cc}" style="${cc==='locked'?'':'background:'+r.color}">${r.emoji}</div><div class="rank-label ${lc}">${r.name}</div></div>`;
   }).join('');
 
   const tasks = taskProgress.map(t => {
     const prog = Math.min(t.val, t.target);
-    const pct2 = Math.round((prog / t.target) * 100);
-    const stateClass = t.done ? 'done-icon' : 'pending-icon';
-    const icon = t.done ? '✅' : '⏳';
+    const p2 = Math.round((prog/t.target)*100);
     return `<div class="task-item">
-      <div class="task-icon ${stateClass}">${icon}</div>
+      <div class="task-icon ${t.done?'done-icon':'pending-icon'}">${t.done?'✅':'⏳'}</div>
       <div class="task-info">
         <div class="task-name">${t.name}</div>
         <div class="task-prog">${prog} / ${t.target}</div>
-        ${!t.done ? `<div class="task-bar"><div class="task-bar-fill" style="width:${pct2}%;background:${rank.barColor}"></div></div>` : ''}
+        ${!t.done?`<div class="task-bar"><div class="task-bar-fill" style="width:${p2}%;background:${rank.barColor}"></div></div>`:''}
       </div>
     </div>`;
   }).join('');
 
-  const nextInfo = next
-    ? `До <b>${next.name}</b>: нужно $${next.minPnl} P&L (сейчас $${pnl.toFixed(2)})`
-    : `Ты достиг максимального ранга 🎉`;
-
   document.getElementById('careerContent').innerHTML = `
-    <div style="margin-bottom:14px">
-      <div class="rank-track">${rankTrack}</div>
-    </div>
+    <div style="margin-bottom:14px"><div class="rank-track">${rankTrack}</div></div>
     <div class="career-char-big">${charSvg(rank.id, 120)}</div>
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">ТЕКУЩИЙ РАНГ</div>
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">ТЕКУЩИЙ РАНГ</div>
       <div style="font-size:22px;font-weight:700;color:${rank.color}">${rank.name}</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;">${nextInfo}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px">${next?`До <b>${next.name}</b>: нужно $${next.minPnl} P&L (сейчас $${pnl.toFixed(2)})`:'Ты достиг максимального ранга 🎉'}</div>
     </div>
-    <div style="margin-bottom:8px;margin-top:4px">
+    <div style="margin-bottom:8px">
       <div class="career-progress-bg" style="height:3px;border-radius:2px">
         <div style="height:100%;width:${pct}%;background:${rank.barColor};border-radius:2px;transition:width .6s ease"></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:4px">
         <span style="font-family:var(--mono);font-size:10px;font-weight:600;color:${rank.color}">${pct}%</span>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${next ? next.name : '★ MAX'}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${next?next.name:'★ MAX'}</span>
       </div>
     </div>
     <div style="height:1px;background:var(--line);margin:12px 0"></div>
     <div class="section-title">ЗАДАНИЯ</div>
     <div class="career-tasks" style="margin-top:8px">${tasks}</div>
     <div style="background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:11px;margin-top:4px">
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;">// СОВЕТ</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">// СОВЕТ</div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.6">${rank.tip}</div>
-    </div>
-  `;
-}
-
-// ── Stats ──────────────────────────────────────────────────────────────────────
-function renderStats(s) {
-  if (!s) return;
-  document.getElementById('statTotal').textContent = '$' + s.total_value.toFixed(2);
-  document.getElementById('statItems').textContent = `вложено $${s.total_invested.toFixed(2)}`;
-  const pnlEl = document.getElementById('statPnl');
-  const sign = s.total_pnl >= 0 ? '+' : '';
-  pnlEl.textContent = sign + '$' + Math.abs(s.total_pnl).toFixed(2);
-  pnlEl.className = 'stat-value ' + (s.total_pnl >= 0 ? 'c-green' : 'c-red');
-  const pctEl = document.getElementById('statPnlPct');
-  pctEl.textContent = sign + s.total_pnl_pct.toFixed(1) + '%';
-  pctEl.className = 'stat-sub ' + (s.total_pnl >= 0 ? 'c-green' : 'c-red');
+    </div>`;
 }
 
 // ── Items ──────────────────────────────────────────────────────────────────────
@@ -1099,6 +607,7 @@ function renderItems(items) {
   if (!items.length) return;
   header.style.display = 'flex';
   document.getElementById('itemsCount').textContent = items.length + ' предметов';
+  const srcShortMap = { steam:'STM', lisskins:'LIS', market_csgo:'MKT' };
   content.innerHTML = items.map((item, i) => {
     const rc = rarityColor(item.rarity);
     const imgSrc = item.image_url
@@ -1106,12 +615,12 @@ function renderItems(items) {
       : `<span class="img-fallback">⬡</span>`;
     let rightCol;
     if (item.tracked) {
-      const s = item.pnl >= 0 ? '+' : '';
-      const cls = item.pnl >= 0 ? 'c-green' : 'c-red';
+      const s = item.pnl>=0?'+':'', cls=item.pnl>=0?'c-green':'c-red';
+      const src = srcShortMap[item.buy_source] || 'STM';
       rightCol = `<div class="item-right">
-        <div class="item-price">$${(item.current_price||0).toFixed(2)}</div>
+        <div class="item-price">$${(item.best_price||item.current_price||0).toFixed(2)}</div>
         <div class="item-pnl ${cls}">${s}$${Math.abs(item.pnl).toFixed(2)}</div>
-        ${item.quantity > 1 ? `<div class="item-qty">×${item.quantity}</div>` : ''}
+        <div class="item-qty">${src}${item.quantity>1?' ×'+item.quantity:''}</div>
       </div>`;
     } else {
       rightCol = `<div class="item-right">
@@ -1119,12 +628,12 @@ function renderItems(items) {
         <div style="font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:3px;cursor:pointer" onclick="event.stopPropagation();quickTrack(${i})">+ ДОБАВИТЬ</div>
       </div>`;
     }
-    return `<div class="item-card${item.tracked ? '' : ' untracked'}" onclick="openDetail(${i})">
+    return `<div class="item-card${item.tracked?'':' untracked'}" onclick="openDetail(${i})">
       <div class="rarity-stripe" style="background:${rc}"></div>
       <div class="item-thumb">${imgSrc}</div>
       <div class="item-info">
         <div class="item-name">${item.market_hash_name}</div>
-        <div class="item-tags">${item.wear ? wearTag(item.wear) : ''}${item.rarity ? rarityTag(item.rarity) : ''}</div>
+        <div class="item-tags">${item.wear?wearTag(item.wear):''}${item.rarity?rarityTag(item.rarity):''}</div>
       </div>
       ${rightCol}
     </div>`;
@@ -1144,7 +653,7 @@ function quickTrack(idx) {
 // ── Analytics ──────────────────────────────────────────────────────────────────
 function renderAnalytics(items) {
   if (!items.length) return;
-  const sorted = [...items].sort((a,b) => b.pnl - a.pnl);
+  const sorted = [...items].sort((a,b)=>b.pnl-a.pnl);
   const top5 = sorted.slice(0,5);
   const bot3 = sorted.filter(i=>i.pnl<0).slice(-3).reverse();
   document.getElementById('analyticsContent').innerHTML = `
@@ -1153,44 +662,34 @@ function renderAnalytics(items) {
       <div class="stat-card"><div class="stat-label">ПРИБЫЛЬНЫХ</div><div class="stat-value c-green">${items.filter(i=>i.pnl>0).length}</div><div class="stat-sub c-red">убыточных: ${items.filter(i=>i.pnl<0).length}</div></div>
     </div>
     <div class="section-title" style="margin-bottom:8px">ТОП ПО ПРИБЫЛИ</div>
-    ${top5.map((item,i) => topRow(item,i+1)).join('')}
-    ${bot3.length ? `<div class="section-title" style="margin:14px 0 8px">УБЫТОЧНЫЕ</div>${bot3.map((item,i)=>topRow(item,i+1,true)).join('')}` : ''}
-  `;
+    ${top5.map((item,i)=>topRow(item,i+1)).join('')}
+    ${bot3.length?`<div class="section-title" style="margin:14px 0 8px">УБЫТОЧНЫЕ</div>${bot3.map((item,i)=>topRow(item,i+1,true)).join('')}`:''}`;
 }
 
 function topRow(item, rank, red=false) {
-  const s = item.pnl >= 0 ? '+' : '';
-  const cls = red ? 'c-red' : 'c-green';
-  const img = item.image_url
-    ? `<img class="top-thumb" src="${item.image_url}" loading="lazy"/>`
-    : `<div class="top-thumb" style="display:flex;align-items:center;justify-content:center;font-size:18px">⬡</div>`;
+  const s=item.pnl>=0?'+':'', cls=red?'c-red':'c-green';
+  const img = item.image_url ? `<img class="top-thumb" src="${item.image_url}" loading="lazy"/>` : `<div class="top-thumb" style="display:flex;align-items:center;justify-content:center;font-size:18px">⬡</div>`;
   return `<div class="top-item">${img}<div class="top-rank">${rank}</div><div class="top-info"><div class="top-name">${item.market_hash_name}</div><div class="top-pnl ${cls}">${s}$${Math.abs(item.pnl).toFixed(2)} (${s}${item.pnl_pct.toFixed(1)}%)</div></div></div>`;
 }
 
 // ── Chart ──────────────────────────────────────────────────────────────────────
 function renderChart(items) {
   if (!items.length) return;
-  document.getElementById('chartWrap').style.display = 'block';
-  const total = items.reduce((s,i) => s+i.total_value, 0);
+  const total = items.reduce((s,i)=>s+i.total_value, 0);
   if (total === 0) return;
-  const pts = Array.from({length:15},(_,k) => {
-    const noise = (Math.random()-.5)*total*0.04;
-    return total*(0.88+0.12*(k/14))+noise;
-  });
+  document.getElementById('chartWrap').style.display = 'block';
+  const pts = Array.from({length:15},(_,k)=>{ const n=(Math.random()-.5)*total*.04; return total*(.88+.12*(k/14))+n; });
   pts[pts.length-1] = total;
   const svg = document.getElementById('portfolioChart');
-  const W = svg.parentElement.offsetWidth || 320;
-  const H = 60; const pad = 4;
+  const W = svg.parentElement.offsetWidth||320, H=60, pad=4;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  const min = Math.min(...pts)-total*0.01;
-  const max = Math.max(...pts)+total*0.01;
-  const xs = pts.map((_,i)=>pad+(i/(pts.length-1))*(W-pad*2));
-  const ys = pts.map(v=>pad+(1-(v-min)/(max-min))*(H-pad*2));
-  const d = xs.map((x,i)=>`${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
-  const fill = d+` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
-  const rising = pts[pts.length-1]>=pts[0];
-  const color = rising?'#00c97b':'#ff4466';
-  svg.innerHTML = `<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="2.5" fill="${color}"/>`;
+  const min=Math.min(...pts)-total*.01, max=Math.max(...pts)+total*.01;
+  const xs=pts.map((_,i)=>pad+(i/(pts.length-1))*(W-pad*2));
+  const ys=pts.map(v=>pad+(1-(v-min)/(max-min))*(H-pad*2));
+  const d=xs.map((x,i)=>`${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const fill=d+` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
+  const color=pts[pts.length-1]>=pts[0]?'#00c97b':'#ff4466';
+  svg.innerHTML=`<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="2.5" fill="${color}"/>`;
 }
 
 // ── Detail ─────────────────────────────────────────────────────────────────────
@@ -1202,18 +701,40 @@ async function openDetail(idx) {
     : `<div class="detail-img" style="display:flex;align-items:center;justify-content:center;font-size:50px">⬡</div>`;
   let statsHtml='', actionsHtml='';
   if (item.tracked) {
-    const s = item.pnl>=0?'+':''; const cls = item.pnl>=0?'c-green':'c-red';
+    const s=item.pnl>=0?'+':'', cls=item.pnl>=0?'c-green':'c-red';
+    const srcLabel = {steam:'Steam',lisskins:'Lisskins',market_csgo:'Market.CSGO'}[item.buy_source]||'Steam';
+    const fmt = v => v != null ? '$'+v.toFixed(2) : '—';
+    const bestSrc = item.best_source || 'steam';
     let histSvg='';
     try {
       const hist = await apiFetch(`/api/history/${encodeURIComponent(item.market_hash_name)}`);
       if (hist.history?.length>1) histSvg = buildMiniChart(hist.history.map(h=>h.price_usd),320,52,'#f9c74f');
     } catch(_) {}
-    statsHtml = `<div class="detail-stats">
-      <div class="ds-card"><div class="ds-label">ЦЕНА СЕЙЧАС</div><div class="ds-val c-amber">$${(item.current_price||0).toFixed(2)}</div></div>
-      <div class="ds-card"><div class="ds-label">КУПЛЕНО ЗА</div><div class="ds-val">$${item.buy_price.toFixed(2)}</div></div>
-      <div class="ds-card"><div class="ds-label">P&amp;L</div><div class="ds-val ${cls}">${s}$${Math.abs(item.pnl).toFixed(2)}</div></div>
-      <div class="ds-card"><div class="ds-label">ДОХОДНОСТЬ</div><div class="ds-val ${cls}">${s}${item.pnl_pct.toFixed(1)}%</div></div>
-    </div>${histSvg?`<div class="mini-hist">${histSvg}</div>`:''}`;
+    statsHtml = `
+      <div class="prices-grid">
+        <div class="psg-card${bestSrc==='steam'?' best':''}">
+          <div class="psg-label">STEAM</div>
+          <div class="psg-val">${fmt(item.price_steam)}</div>
+          ${bestSrc==='steam'?'<div class="psg-best">✓ best</div>':''}
+        </div>
+        <div class="psg-card${bestSrc==='lisskins'?' best':''}">
+          <div class="psg-label">LISSKINS</div>
+          <div class="psg-val">${fmt(item.price_lisskins)}</div>
+          ${bestSrc==='lisskins'?'<div class="psg-best">✓ best</div>':''}
+        </div>
+        <div class="psg-card${bestSrc==='market_csgo'?' best':''}">
+          <div class="psg-label">MKT.CSGO</div>
+          <div class="psg-val">${fmt(item.price_market_csgo)}</div>
+          ${bestSrc==='market_csgo'?'<div class="psg-best">✓ best</div>':''}
+        </div>
+      </div>
+      <div class="detail-stats">
+        <div class="ds-card"><div class="ds-label">ЛУЧШАЯ ЦЕНА</div><div class="ds-val c-green">${fmt(item.best_price||item.current_price)}</div></div>
+        <div class="ds-card"><div class="ds-label">КУПЛЕНО</div><div class="ds-val" style="font-size:12px">${srcLabel} <span style="font-size:10px;color:var(--muted)">$${item.buy_price.toFixed(2)}</span></div></div>
+        <div class="ds-card"><div class="ds-label">P&amp;L</div><div class="ds-val ${cls}">${s}$${Math.abs(item.pnl).toFixed(2)}</div></div>
+        <div class="ds-card"><div class="ds-label">ДОХОДНОСТЬ</div><div class="ds-val ${cls}">${s}${item.pnl_pct.toFixed(1)}%</div></div>
+      </div>
+      ${histSvg?`<div class="mini-hist">${histSvg}</div>`:''}`;
     actionsHtml = `<div class="detail-actions"><button class="btn-del" onclick="deleteItem(${idx})">Удалить</button><button class="btn-close" onclick="closeDetail()">Закрыть</button></div>`;
   } else {
     statsHtml = `<div style="text-align:center;font-family:var(--mono);color:var(--muted);font-size:11px;padding:8px 0 16px;line-height:1.7">Предмет не отслеживается —<br>добавьте цену покупки чтобы считать P&L</div>`;
@@ -1239,13 +760,20 @@ async function deleteItem(idx) {
 }
 
 function buildMiniChart(pts,W,H,color) {
-  const pad=4; const min=Math.min(...pts); const max=Math.max(...pts);
+  const pad=4, min=Math.min(...pts), max=Math.max(...pts);
   if(min===max) return '';
   const xs=pts.map((_,i)=>pad+(i/(pts.length-1))*(W-pad*2));
   const ys=pts.map(v=>pad+(1-(v-min)/(max-min))*(H-pad*2));
   const d=xs.map((x,i)=>`${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
   const fill=d+` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#mg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%"><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#mg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+}
+
+// ── Source selector ────────────────────────────────────────────────────────────
+function selectSource(btn) {
+  document.querySelectorAll('.source-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedBuySource = btn.dataset.source;
 }
 
 // ── Search ─────────────────────────────────────────────────────────────────────
@@ -1253,7 +781,7 @@ function onSearchInput() {
   clearTimeout(searchTimeout);
   const q = document.getElementById('skinSearch').value.trim();
   if (q.length < 2) { document.getElementById('searchResults').innerHTML=''; return; }
-  searchTimeout = setTimeout(() => doSearch(q), 400);
+  searchTimeout = setTimeout(()=>doSearch(q), 400);
 }
 
 async function doSearch(q) {
@@ -1261,64 +789,69 @@ async function doSearch(q) {
   box.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   try {
     const data = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
-    if (!data.results.length) {
-      box.innerHTML='<div style="padding:10px;font-family:var(--mono);color:var(--muted);font-size:11px;">Ничего не найдено</div>';
-      return;
-    }
-    box.innerHTML = '<div class="search-results">'+data.results.map(r => {
-      const img = r.image_url
-        ? `<img class="sr-thumb" src="${r.image_url}" loading="lazy"/>`
-        : `<div class="sr-thumb" style="display:flex;align-items:center;justify-content:center">⬡</div>`;
+    if (!data.results.length) { box.innerHTML='<div style="padding:10px;font-family:var(--mono);color:var(--muted);font-size:11px">Ничего не найдено</div>'; return; }
+    box.innerHTML = '<div class="search-results">'+data.results.map(r=>{
+      const img=r.image_url?`<img class="sr-thumb" src="${r.image_url}" loading="lazy"/>`:`<div class="sr-thumb" style="display:flex;align-items:center;justify-content:center">⬡</div>`;
       return `<div class="sr-item" onclick='selectSkin(${JSON.stringify(r)})'>${img}<span class="sr-name">${r.name||r.market_hash_name}</span></div>`;
     }).join('')+'</div>';
-  } catch(e) {
-    box.innerHTML=`<div style="padding:10px;font-family:var(--mono);color:var(--red);font-size:11px;">${e.message}</div>`;
-  }
+  } catch(e) { box.innerHTML=`<div style="padding:10px;font-family:var(--mono);color:var(--red);font-size:11px">${e.message}</div>`; }
 }
 
 async function selectSkin(skin) {
   pendingSkin = skin;
-  document.getElementById('searchResults').innerHTML='';
+  document.getElementById('searchResults').innerHTML = '';
   document.getElementById('skinSearch').value = skin.name||skin.market_hash_name;
-  let price=null;
+  let priceData = null;
   try {
-    const p = await apiFetch(`/api/price/${encodeURIComponent(skin.market_hash_name)}`);
-    price=p.price_usd; if(price) pendingSkin.image_url=p.image_url||skin.image_url;
+    priceData = await apiFetch(`/api/price/${encodeURIComponent(skin.market_hash_name)}`);
+    if (priceData?.image_url) pendingSkin.image_url = priceData.image_url || skin.image_url;
   } catch(_) {}
   const img = pendingSkin.image_url
     ? `<img class="selected-thumb" src="${pendingSkin.image_url}"/>`
     : `<div class="selected-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px">⬡</div>`;
-  document.getElementById('selectedSkinPreview').innerHTML = `${img}<div><div class="selected-name">${skin.name||skin.market_hash_name}</div>${price?`<div class="selected-price">Сейчас: $${price.toFixed(2)}</div>`:'<div class="selected-price">Цена неизвестна</div>'}</div>`;
-  if(price) document.getElementById('buyPrice').placeholder=price.toFixed(2);
-  document.getElementById('addForm').style.display='block';
+  const fmt = v => v != null ? '$'+v.toFixed(2) : '—';
+  document.getElementById('selectedSkinPreview').innerHTML = `
+    ${img}
+    <div style="flex:1;min-width:0">
+      <div class="selected-name">${skin.name||skin.market_hash_name}</div>
+      <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">
+        <span style="font-family:var(--mono);font-size:9px;background:var(--bg3);border-radius:3px;padding:2px 6px;color:var(--muted)">STM ${fmt(priceData?.price_steam)}</span>
+        <span style="font-family:var(--mono);font-size:9px;background:var(--bg3);border-radius:3px;padding:2px 6px;color:var(--muted)">LIS ${fmt(priceData?.price_lisskins)}</span>
+        <span style="font-family:var(--mono);font-size:9px;background:var(--bg3);border-radius:3px;padding:2px 6px;color:var(--muted)">MKT ${fmt(priceData?.price_market_csgo)}</span>
+      </div>
+    </div>`;
+  if (priceData?.best_price) document.getElementById('buyPrice').placeholder = priceData.best_price.toFixed(2);
+  document.getElementById('addForm').style.display = 'block';
 }
 
 async function submitAddItem() {
-  if(!pendingSkin) return;
-  const steamId=document.getElementById('addSteamId').value.trim()||currentSteamId;
-  const buyPrice=parseFloat(document.getElementById('buyPrice').value);
-  const qty=parseInt(document.getElementById('buyQty').value)||1;
-  if(!steamId){showToast('Введите Steam ID');return;}
-  if(!buyPrice||buyPrice<=0){showToast('Введите корректную цену');return;}
+  if (!pendingSkin) return;
+  const steamId = document.getElementById('addSteamId').value.trim()||currentSteamId;
+  const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+  const qty = parseInt(document.getElementById('buyQty').value)||1;
+  if (!steamId) { showToast('Введите Steam ID'); return; }
+  if (!buyPrice||buyPrice<=0) { showToast('Введите корректную цену'); return; }
   try {
-    await apiFetch('/api/portfolio/item',{method:'POST',body:JSON.stringify({steam_id:steamId,market_hash_name:pendingSkin.market_hash_name,buy_price:buyPrice,quantity:qty})});
+    await apiFetch('/api/portfolio/item',{method:'POST',body:JSON.stringify({steam_id:steamId,market_hash_name:pendingSkin.market_hash_name,buy_price:buyPrice,quantity:qty,buy_source:selectedBuySource})});
     showToast('Добавлено в портфолио!');
-    currentSteamId=steamId; document.getElementById('steamInput').value=steamId;
-    document.getElementById('skinSearch').value=''; document.getElementById('addForm').style.display='none'; pendingSkin=null;
+    currentSteamId=steamId;
+    document.getElementById('steamInput').value=steamId;
+    document.getElementById('skinSearch').value='';
+    document.getElementById('addForm').style.display='none';
+    pendingSkin=null;
     switchTabById('items'); loadPortfolio();
-  } catch(e){showToast('Ошибка: '+e.message);}
+  } catch(e) { showToast('Ошибка: '+e.message); }
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────────
 function switchTabEl(el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  const name = el.dataset.tab;
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('panel-'+el.dataset.tab).classList.add('active');
 }
 function switchTabById(name) {
-  const el = document.querySelector(`[data-tab="${name}"]`);
+  const el=document.querySelector(`[data-tab="${name}"]`);
   if(el) switchTabEl(el);
 }
 
