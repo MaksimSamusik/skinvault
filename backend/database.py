@@ -11,7 +11,11 @@ load_dotenv(override=False)
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if not DATABASE_URL:
-    print("FATAL: DATABASE_URL не задан. Установи переменную окружения.", file=sys.stderr)
+    # Печатаем ВСЕ переменные окружения для диагностики
+    import json
+    env_keys = [k for k in os.environ.keys()]
+    print(f"FATAL: DATABASE_URL не задан.", file=sys.stderr)
+    print(f"Все переменные окружения: {env_keys}", file=sys.stderr)
     sys.exit(1)
 
 # Railway иногда отдаёт postgres:// вместо postgresql://
