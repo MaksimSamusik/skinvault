@@ -348,8 +348,23 @@ class UpdateItemRequest(BaseModel):
 # ── Routes ─────────────────────────────────────────────────────────────────
 
 @app.get("/api/health")
-async def health():
-    return {"status": "ok"}
+async def health(session: AsyncSession = Depends(get_session)):
+    from database import DATABASE_URL, IS_POSTGRES
+    import os
+    db_type = "postgres" if IS_POSTGRES else "sqlite"
+    try:
+        from sqlalchemy import text as sa_text
+        await session.execute(sa_text("SELECT 1"))
+        db_ok = True
+    except Exception as e:
+        db_ok = str(e)
+    return {
+        "status": "ok",
+        "db_type": db_type,
+        "db_ok": db_ok,
+        "has_database_url_env": bool(os.environ.get("DATABASE_URL")),
+        "db_url_prefix": DATABASE_URL[:35] + "..." if DATABASE_URL else None,
+    }
 
 
 @app.get("/api/resolve/{vanity_url}")
