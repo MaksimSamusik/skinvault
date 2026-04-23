@@ -446,47 +446,57 @@ async def get_portfolio(
             for r in rows
         ])
 
+    SOURCE_KEY_MAP = {
+        "steam":       "price_steam",
+        "lisskins":    "price_lisskins",
+        "market_csgo": "price_market_csgo",
+    }
+
     items = []
     total_current = total_invested = 0.0
 
     for row, pd in zip(rows, prices):
-        # buy_source может быть None в старых записях БД (до миграции) — нормализуем
         buy_source = (row.buy_source or "steam").strip().lower()
-        valid_sources = ("steam", "lisskins", "market_csgo")
-        if buy_source not in valid_sources:
+        if buy_source not in SOURCE_KEY_MAP:
             buy_source = "steam"
 
-        source_key = f"price_{buy_source}"
+        source_key = SOURCE_KEY_MAP[buy_source]
 
-        # Текущая цена на той же платформе, где покупали.
-        # Если платформа вернула None (временно недоступна) — берём best_price как фоллбэк.
+        # Цена на площадке покупки — именно по ней считаем P&L
         current_on_source = pd.get(source_key)
         if current_on_source is None or current_on_source <= 0:
+            # Площадка временно недоступна — фоллбэк на best_price,
+            # но помечаем что данные неточные
             current_on_source = pd.get("best_price") or 0.0
+            price_unavailable = True
+        else:
+            price_unavailable = False
 
         best_price = pd.get("best_price") or 0.0
 
         invested = row.buy_price * row.quantity
-        # Стоимость и P&L — от цены на платформе покупки
         value    = current_on_source * row.quantity
         pnl      = value - invested
         pnl_pct  = (pnl / invested * 100) if invested > 0 else 0.0
+
         total_current  += value
         total_invested += invested
 
         items.append({
             "market_hash_name":   row.market_hash_name,
             "buy_price":          row.buy_price,
-            "buy_source":         buy_source,           # нормализованный
+            "buy_source":         buy_source,
             "quantity":           row.quantity,
-            # цены по всем источникам
+            # Все цены по источникам
             "price_steam":        pd.get("price_steam"),
             "price_lisskins":     pd.get("price_lisskins"),
             "price_market_csgo":  pd.get("price_market_csgo"),
             "best_price":         round(best_price, 2),
             "best_source":        pd.get("best_source"),
-            # current_price = цена именно на платформе покупки
+            # P&L считается строго по площадке покупки
             "current_price":      round(current_on_source, 2),
+            "price_source_used":  buy_source,          # какая цена реально использована
+            "price_unavailable":  price_unavailable,   # флаг: пришлось использовать фоллбэк
             "total_value":        round(value, 2),
             "invested":           round(invested, 2),
             "pnl":                round(pnl, 2),
