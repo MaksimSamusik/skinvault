@@ -379,6 +379,13 @@ async def fetch_steam_inventory(client: httpx.AsyncClient, steam_id: str) -> lis
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    # Прогреваем кэш при старте, чтобы первый запрос не ждал
+    async with httpx.AsyncClient() as client:
+        await asyncio.gather(
+            load_market_csgo_prices(client),
+            load_lisskins_prices(client),
+            return_exceptions=True,
+        )
     yield
 
 app = FastAPI(title="SkinVault API", lifespan=lifespan)
