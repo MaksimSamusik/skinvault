@@ -27,24 +27,24 @@ STEAM_RESOLVE_URL   = "https://api.steampowered.com/ISteamUser/ResolveVanityURL/
 STEAM_CDN           = "https://community.akamai.steamstatic.com/economy/image/"
 STEAM_API_KEY       = os.getenv("STEAM_API_KEY", "")
 
-# ── Constants (добавить/заменить) ──────────────────────────────────────────
 LISSKINS_API_KEY    = os.getenv("LISSKINS_API_KEY", "")
 CSGOMARKET_API_KEY  = os.getenv("CSGOMARKET_API_KEY", "")
 
-# market.csgo.com — прайслист с ключом (USD)
-MARKET_CSGO_PRICES_URL = "https://market.csgo.com/api/v2/prices/USD.json"
+# Lisskins — полный прайслист CS2
+LISSKINS_PRICES_URL   = "https://lis-skins.com/market_export_json/api_csgo_full.json"
 
-# market.csgo.com — цена конкретного предмета (используем если bulk недоступен)
-MARKET_CSGO_ITEM_URL   = "https://market.csgo.com/api/v2/search-item-by-hash-name-specific"
+# market.csgo.com — chunked full-export (USD)
+MARKET_CSGO_INDEX_URL = "https://market.csgo.com/api/full-export/USD.json"
+MARKET_CSGO_BASE_URL  = "https://market.csgo.com/api/full-export"
 
-# Lisskins — прайслист с ключом
-LISSKINS_PRICES_URL = "https://lis-skins.ru/market_pricelist/json_cs2/?currency=USD"
+# market.csgo.com — цена конкретного предмета (фоллбэк если bulk недоступен)
+MARKET_CSGO_ITEM_URL  = "https://market.csgo.com/api/v2/search-item-by-hash-name-specific"
 
-CACHE_TTL        = 3600   # 1 час для Steam (rate-limit)
-CACHE_TTL_FAST   = 1800   # 30 мин для сторонних маркетов
+CACHE_TTL       = 3600  # 1 час для Steam (rate-limit)
+CACHE_TTL_FAST  = 1800  # 30 мин для сторонних маркетов
 
 # In-memory кэш прайслистов (чтобы не скачивать весь файл каждый раз)
-_market_csgo_prices: dict  = {}   # market_hash_name -> price_usd
+_market_csgo_prices: dict  = {}
 _market_csgo_loaded: float = 0.0
 
 _lisskins_prices: dict     = {}
@@ -54,46 +54,49 @@ _lisskins_loaded: float    = 0.0
 # ── Bulk price loaders ────────────────────────────────────────────────────
 
 async def load_market_csgo_prices(client: httpx.AsyncClient) -> dict:
-    """Загружает весь прайслист market.csgo.com (USD) в память."""
+    """Загружает весь прайслист market.csgo.com через chunked full-export."""
     global _market_csgo_prices, _market_csgo_loaded
     now = time.time()
     if _market_csgo_prices and (now - _market_csgo_loaded) < CACHE_TTL_FAST:
         return _market_csgo_prices
 
     try:
-        # С ключом — лимиты выше и данные актуальнее
-        params = {"key": CSGOMARKET_API_KEY} if CSGOMARKET_API_KEY else {}
-        resp = await client.get(MARKET_CSGO_PRICES_URL, params=params, timeout=30)
-        data = resp.json()
+        # 1. Получаем индекс чанков
+        resp = await client.get(MARKET_CSGO_INDEX_URL, timeout=30)
+        files = resp.json().get("items", [])
 
-        if data.get("success") and data.get("items"):
-            result = {}
-            items = data["items"]
+        # 2. Грузим все чанки параллельно
+        async def fetch_chunk(url: str):
+            r = await client.get(url, timeout=30)
+            return r.json()
 
-            # Формат может быть dict {"classid_instanceid": {...}} или list
-            if isinstance(items, dict):
-                for item in items.values():
-                    name = item.get("market_hash_name")
-                    price_str = item.get("price")
-                    if name and price_str:
+        chunks = await asyncio.gather(*[
+            fetch_chunk(f"{MARKET_CSGO_BASE_URL}/{f}") for f in files
+        ], return_exceptions=True)
+
+        result = {}
+        for chunk in chunks:
+            if isinstance(chunk, Exception):
+                continue
+            for item in chunk:
+                # Формат чанка: [price, ?, market_hash_name]
+                if len(item) >= 3:
+                    price = item[0]
+                    name  = item[2]
+                    if name and price:
                         try:
-                            result[name] = float(price_str)
+                            p = float(price)
+                            if name not in result or p < result[name]:
+                                result[name] = p
                         except (ValueError, TypeError):
                             pass
-            elif isinstance(items, list):
-                for item in items:
-                    name = item.get("market_hash_name")
-                    price_str = item.get("price")
-                    if name and price_str:
-                        try:
-                            result[name] = float(price_str)
-                        except (ValueError, TypeError):
-                            pass
 
-            if result:
-                _market_csgo_prices = result
-                _market_csgo_loaded = now
-                print(f"[market.csgo] Загружено {len(result)} предметов")
+        if result:
+            _market_csgo_prices = result
+            _market_csgo_loaded = now
+            print(f"[market.csgo] Загружено {len(result)} предметов")
+        else:
+            print("[market.csgo] Пустой результат после парсинга чанков")
 
     except Exception as e:
         print(f"[market.csgo] Ошибка загрузки прайслиста: {e}")
@@ -102,7 +105,7 @@ async def load_market_csgo_prices(client: httpx.AsyncClient) -> dict:
 
 
 async def load_lisskins_prices(client: httpx.AsyncClient) -> dict:
-    """Загружает весь прайслист lisskins в память."""
+    """Загружает весь прайслист lisskins через api_csgo_full.json."""
     global _lisskins_prices, _lisskins_loaded
     now = time.time()
     if _lisskins_prices and (now - _lisskins_loaded) < CACHE_TTL_FAST:
@@ -117,16 +120,15 @@ async def load_lisskins_prices(client: httpx.AsyncClient) -> dict:
         data = resp.json()
 
         result = {}
-        # Формат: { "success": true, "items": [ { "name": "...", "price": 1.23 } ] }
-        # или просто список
-        items = data if isinstance(data, list) else data.get("items", [])
-
-        for item in items:
-            name  = item.get("name") or item.get("market_hash_name")
-            price = item.get("price") or item.get("steam_price") or item.get("price_usd")
+        for item in data.get("items", []):
+            name  = item.get("name")
+            price = item.get("price")
             if name and price:
                 try:
-                    result[name] = float(price)
+                    p = float(price)
+                    # Берём минимальную цену если встречается дубль
+                    if name not in result or p < result[name]:
+                        result[name] = p
                 except (ValueError, TypeError):
                     pass
 
@@ -248,7 +250,7 @@ def _best_price(steam, lisskins, market_csgo) -> Optional[float]:
 def _build_price_response(cached: PriceCache) -> dict:
     best = _best_price(cached.price_steam, cached.price_lisskins, cached.price_market_csgo)
     return {
-        "price_usd":          best,                    # для обратной совместимости
+        "price_usd":          best,
         "price_steam":        cached.price_steam,
         "price_lisskins":     cached.price_lisskins,
         "price_market_csgo":  cached.price_market_csgo,
@@ -517,8 +519,7 @@ async def get_portfolio(
         # Цена на площадке покупки — именно по ней считаем P&L
         current_on_source = pd.get(source_key)
         if current_on_source is None or current_on_source <= 0:
-            # Площадка временно недоступна — фоллбэк на best_price,
-            # но помечаем что данные неточные
+            # Площадка временно недоступна — фоллбэк на best_price
             current_on_source = pd.get("best_price") or 0.0
             price_unavailable = True
         else:
@@ -547,8 +548,8 @@ async def get_portfolio(
             "best_source":        pd.get("best_source"),
             # P&L считается строго по площадке покупки
             "current_price":      round(current_on_source, 2),
-            "price_source_used":  buy_source,          # какая цена реально использована
-            "price_unavailable":  price_unavailable,   # флаг: пришлось использовать фоллбэк
+            "price_source_used":  buy_source,
+            "price_unavailable":  price_unavailable,
             "total_value":        round(value, 2),
             "invested":           round(invested, 2),
             "pnl":                round(pnl, 2),
