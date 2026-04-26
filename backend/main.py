@@ -379,13 +379,20 @@ async def fetch_steam_inventory(client: httpx.AsyncClient, steam_id: str) -> lis
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    # Прогреваем кэш при старте, чтобы первый запрос не ждал
-    async with httpx.AsyncClient() as client:
-        await asyncio.gather(
-            load_market_csgo_prices(client),
-            load_lisskins_prices(client),
-            return_exceptions=True,
-        )
+    print("[startup] init_db OK")
+    try:
+        async with httpx.AsyncClient() as client:
+            print("[startup] Загрузка market.csgo...")
+            market = await load_market_csgo_prices(client)
+            print(f"[startup] market.csgo OK: {len(market)} предметов")
+
+            print("[startup] Загрузка lisskins...")
+            lisskins = await load_lisskins_prices(client)
+            print(f"[startup] lisskins OK: {len(lisskins)} предметов")
+    except Exception as e:
+        print(f"[startup] ОШИБКА загрузки прайслистов: {e}")
+        # Не падаем — стартуем без кэша, он заполнится при первом запросе
+    print("[startup] Done")
     yield
 
 app = FastAPI(title="SkinVault API", lifespan=lifespan)
