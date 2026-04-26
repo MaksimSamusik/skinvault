@@ -30,78 +30,21 @@ STEAM_API_KEY       = os.getenv("STEAM_API_KEY", "")
 LISSKINS_API_KEY    = os.getenv("LISSKINS_API_KEY", "")
 CSGOMARKET_API_KEY  = os.getenv("CSGOMARKET_API_KEY", "")
 
-# Lisskins — полный прайслист CS2
-LISSKINS_PRICES_URL   = "https://lis-skins.com/market_export_json/api_csgo_full.json"
+# Lisskins — полный прайслист CS2 (~20MB, терпимо)
+LISSKINS_PRICES_URL  = "https://lis-skins.com/market_export_json/api_csgo_full.json"
 
-# market.csgo.com — chunked full-export (USD)
-MARKET_CSGO_INDEX_URL = "https://market.csgo.com/api/full-export/USD.json"
-MARKET_CSGO_BASE_URL  = "https://market.csgo.com/api/full-export"
+# market.csgo.com — только single-item (full-export убивает память)
+MARKET_CSGO_ITEM_URL = "https://market.csgo.com/api/v2/search-item-by-hash-name-specific"
 
-# market.csgo.com — цена конкретного предмета (фоллбэк если bulk недоступен)
-MARKET_CSGO_ITEM_URL  = "https://market.csgo.com/api/v2/search-item-by-hash-name-specific"
+CACHE_TTL      = 3600  # 1 час для Steam (rate-limit)
+CACHE_TTL_FAST = 1800  # 30 мин для lisskins
 
-CACHE_TTL       = 3600  # 1 час для Steam (rate-limit)
-CACHE_TTL_FAST  = 1800  # 30 мин для сторонних маркетов
-
-# In-memory кэш прайслистов (чтобы не скачивать весь файл каждый раз)
-_market_csgo_prices: dict  = {}
-_market_csgo_loaded: float = 0.0
-
-_lisskins_prices: dict     = {}
-_lisskins_loaded: float    = 0.0
+# In-memory кэш только lisskins (лёгкий bulk)
+_lisskins_prices: dict  = {}
+_lisskins_loaded: float = 0.0
 
 
 # ── Bulk price loaders ────────────────────────────────────────────────────
-
-async def load_market_csgo_prices(client: httpx.AsyncClient) -> dict:
-    """Загружает весь прайслист market.csgo.com через chunked full-export."""
-    global _market_csgo_prices, _market_csgo_loaded
-    now = time.time()
-    if _market_csgo_prices and (now - _market_csgo_loaded) < CACHE_TTL_FAST:
-        return _market_csgo_prices
-
-    try:
-        # 1. Получаем индекс чанков
-        resp = await client.get(MARKET_CSGO_INDEX_URL, timeout=30)
-        files = resp.json().get("items", [])
-
-        # 2. Грузим все чанки параллельно
-        async def fetch_chunk(url: str):
-            r = await client.get(url, timeout=30)
-            return r.json()
-
-        chunks = await asyncio.gather(*[
-            fetch_chunk(f"{MARKET_CSGO_BASE_URL}/{f}") for f in files
-        ], return_exceptions=True)
-
-        result = {}
-        for chunk in chunks:
-            if isinstance(chunk, Exception):
-                continue
-            for item in chunk:
-                # Формат чанка: [price, ?, market_hash_name]
-                if len(item) >= 3:
-                    price = item[0]
-                    name  = item[2]
-                    if name and price:
-                        try:
-                            p = float(price)
-                            if name not in result or p < result[name]:
-                                result[name] = p
-                        except (ValueError, TypeError):
-                            pass
-
-        if result:
-            _market_csgo_prices = result
-            _market_csgo_loaded = now
-            print(f"[market.csgo] Загружено {len(result)} предметов")
-        else:
-            print("[market.csgo] Пустой результат после парсинга чанков")
-
-    except Exception as e:
-        print(f"[market.csgo] Ошибка загрузки прайслиста: {e}")
-
-    return _market_csgo_prices
 
 
 async def load_lisskins_prices(client: httpx.AsyncClient) -> dict:
@@ -201,11 +144,8 @@ async def fetch_all_prices(
     if not image_url:
         image_url = await fetch_item_image(client, name)
 
-    # market.csgo: сначала bulk, потом single-item фоллбэк
-    market_csgo_map = await load_market_csgo_prices(client)
-    price_market_csgo = market_csgo_map.get(name)
-    if price_market_csgo is None:
-        price_market_csgo = await fetch_market_csgo_item_price(client, name)
+    # market.csgo: только single-item (bulk full-export слишком тяжёлый)
+    price_market_csgo = await fetch_market_csgo_item_price(client, name)
 
     # lisskins bulk
     lisskins_map = await load_lisskins_prices(client)
@@ -382,16 +322,11 @@ async def lifespan(app: FastAPI):
     print("[startup] init_db OK")
     try:
         async with httpx.AsyncClient() as client:
-            print("[startup] Загрузка market.csgo...")
-            market = await load_market_csgo_prices(client)
-            print(f"[startup] market.csgo OK: {len(market)} предметов")
-
             print("[startup] Загрузка lisskins...")
             lisskins = await load_lisskins_prices(client)
             print(f"[startup] lisskins OK: {len(lisskins)} предметов")
     except Exception as e:
         print(f"[startup] ОШИБКА загрузки прайслистов: {e}")
-        # Не падаем — стартуем без кэша, он заполнится при первом запросе
     print("[startup] Done")
     yield
 
