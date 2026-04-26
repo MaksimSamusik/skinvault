@@ -27,28 +27,27 @@ STEAM_RESOLVE_URL   = "https://api.steampowered.com/ISteamUser/ResolveVanityURL/
 STEAM_CDN           = "https://community.akamai.steamstatic.com/economy/image/"
 STEAM_API_KEY       = os.getenv("STEAM_API_KEY", "")
 
-LISSKINS_API_KEY    = os.getenv("LISSKINS_API_KEY", "")
-CSGOMARKET_API_KEY  = os.getenv("CSGOMARKET_API_KEY", "")
+LISSKINS_API_KEY   = os.getenv("LISSKINS_API_KEY", "")
+CSGOMARKET_API_KEY = os.getenv("CSGOMARKET_API_KEY", "")
 
-# Lisskins — полный прайслист CS2 (~20MB, терпимо)
-LISSKINS_PRICES_URL  = "https://lis-skins.com/market_export_json/api_csgo_full.json"
+# Lisskins — полный прайслист CS2 (~20 MB, грузим в память)
+LISSKINS_PRICES_URL = "https://lis-skins.com/market_export_json/api_csgo_full.json"
 
-# market.csgo.com — только single-item (full-export убивает память)
+# market.csgo.com — только per-item запросы (full-export убивает RAM)
 MARKET_CSGO_ITEM_URL = "https://market.csgo.com/api/v2/search-item-by-hash-name-specific"
 
-CACHE_TTL      = 3600  # 1 час для Steam (rate-limit)
+CACHE_TTL      = 3600  # 1 час для Steam
 CACHE_TTL_FAST = 1800  # 30 мин для lisskins
 
-# In-memory кэш только lisskins (лёгкий bulk)
+# In-memory кэш только lisskins
 _lisskins_prices: dict  = {}
 _lisskins_loaded: float = 0.0
 
 
-# ── Bulk price loaders ────────────────────────────────────────────────────
-
+# ── Bulk price loader (lisskins only) ─────────────────────────────────────
 
 async def load_lisskins_prices(client: httpx.AsyncClient) -> dict:
-    """Загружает весь прайслист lisskins через api_csgo_full.json."""
+    """Загружает прайслист lisskins потоково, чтобы не съедать всю RAM."""
     global _lisskins_prices, _lisskins_loaded
     now = time.time()
     if _lisskins_prices and (now - _lisskins_loaded) < CACHE_TTL_FAST:
@@ -59,17 +58,23 @@ async def load_lisskins_prices(client: httpx.AsyncClient) -> dict:
         headers["Authorization"] = f"Bearer {LISSKINS_API_KEY}"
 
     try:
-        resp = await client.get(LISSKINS_PRICES_URL, timeout=30, headers=headers)
-        data = resp.json()
-
+        import json as _json
         result = {}
+        async with client.stream("GET", LISSKINS_PRICES_URL, timeout=60, headers=headers) as resp:
+            raw = b""
+            async for chunk in resp.aiter_bytes(chunk_size=65536):
+                raw += chunk
+                if len(raw) > 80 * 1024 * 1024:
+                    print("[lisskins] Файл > 80MB, прерываем загрузку")
+                    break
+
+        data = _json.loads(raw)
         for item in data.get("items", []):
             name  = item.get("name")
             price = item.get("price")
             if name and price:
                 try:
                     p = float(price)
-                    # Берём минимальную цену если встречается дубль
                     if name not in result or p < result[name]:
                         result[name] = p
                 except (ValueError, TypeError):
@@ -80,16 +85,13 @@ async def load_lisskins_prices(client: httpx.AsyncClient) -> dict:
             _lisskins_loaded = now
             print(f"[lisskins] Загружено {len(result)} предметов")
         else:
-            print(f"[lisskins] Пустой ответ. status={resp.status_code}, body={resp.text[:300]}")
+            print(f"[lisskins] Пустой ответ. status={resp.status_code}")
 
     except Exception as e:
         print(f"[lisskins] Ошибка загрузки прайслиста: {e}")
 
     return _lisskins_prices
-
-
 async def fetch_market_csgo_item_price(client: httpx.AsyncClient, name: str) -> Optional[float]:
-    """Фоллбэк: цена конкретного предмета напрямую с market.csgo (если bulk не сработал)."""
     if not CSGOMARKET_API_KEY:
         return None
     try:
@@ -100,7 +102,6 @@ async def fetch_market_csgo_item_price(client: httpx.AsyncClient, name: str) -> 
         )
         data = resp.json()
         if data.get("success") and data.get("data"):
-            # data — список лотов, берём минимальную цену
             prices = [float(lot["price"]) / 1000 for lot in data["data"] if lot.get("price")]
             return min(prices) if prices else None
     except Exception as e:
@@ -144,12 +145,10 @@ async def fetch_all_prices(
     if not image_url:
         image_url = await fetch_item_image(client, name)
 
-    # market.csgo: только single-item (bulk full-export слишком тяжёлый)
-    price_market_csgo = await fetch_market_csgo_item_price(client, name)
-
-    # lisskins bulk
     lisskins_map = await load_lisskins_prices(client)
     price_lisskins = lisskins_map.get(name)
+
+    price_market_csgo = await fetch_market_csgo_item_price(client, name)
 
     if cached:
         cached.price_steam       = price_steam
@@ -182,7 +181,6 @@ async def fetch_all_prices(
 
 
 def _best_price(steam, lisskins, market_csgo) -> Optional[float]:
-    """Возвращает наименьшую доступную цену среди источников."""
     prices = [p for p in [steam, lisskins, market_csgo] if p is not None and p > 0]
     return min(prices) if prices else None
 
@@ -316,18 +314,27 @@ async def fetch_steam_inventory(client: httpx.AsyncClient, steam_id: str) -> lis
 
 
 # ── App ────────────────────────────────────────────────────────────────────
+
+async def price_refresh_loop():
+    """Фоновое обновление прайслистов каждые 30 минут."""
+    while True:
+        try:
+            async with httpx.AsyncClient() as client:
+                await asyncio.gather(
+                    load_market_csgo_prices(client),
+                    load_lisskins_prices(client),
+                    return_exceptions=True,
+                )
+        except Exception as e:
+            print(f"[price_loop] Ошибка: {e}")
+        await asyncio.sleep(CACHE_TTL_FAST)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    print("[startup] init_db OK")
-    try:
-        async with httpx.AsyncClient() as client:
-            print("[startup] Загрузка lisskins...")
-            lisskins = await load_lisskins_prices(client)
-            print(f"[startup] lisskins OK: {len(lisskins)} предметов")
-    except Exception as e:
-        print(f"[startup] ОШИБКА загрузки прайслистов: {e}")
-    print("[startup] Done")
+    # Запускаем прогрев кэша в фоне — не блокируем старт приложения
+    asyncio.create_task(price_refresh_loop())
     yield
 
 app = FastAPI(title="SkinVault API", lifespan=lifespan)
@@ -335,12 +342,13 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 
 # ── Schemas ────────────────────────────────────────────────────────────────
+
 class AddItemRequest(BaseModel):
     steam_id: str
     market_hash_name: str
     buy_price: float
     quantity: int = 1
-    buy_source: str = "steam"   # steam | lisskins | market_csgo
+    buy_source: str = "steam"
 
 class UpdateItemRequest(BaseModel):
     buy_price: float
@@ -353,7 +361,6 @@ class UpdateItemRequest(BaseModel):
 @app.get("/api/health")
 async def health(session: AsyncSession = Depends(get_session)):
     from database import DATABASE_URL, IS_POSTGRES
-    import os
     db_type = "postgres" if IS_POSTGRES else "sqlite"
     try:
         from sqlalchemy import text as sa_text
@@ -367,6 +374,7 @@ async def health(session: AsyncSession = Depends(get_session)):
         "db_ok": db_ok,
         "has_database_url_env": bool(os.environ.get("DATABASE_URL")),
         "db_url_prefix": DATABASE_URL[:35] + "..." if DATABASE_URL else None,
+        "lisskins_cached": len(_lisskins_prices),
     }
 
 
@@ -465,10 +473,8 @@ async def get_portfolio(
 
         source_key = SOURCE_KEY_MAP[buy_source]
 
-        # Цена на площадке покупки — именно по ней считаем P&L
         current_on_source = pd.get(source_key)
         if current_on_source is None or current_on_source <= 0:
-            # Площадка временно недоступна — фоллбэк на best_price
             current_on_source = pd.get("best_price") or 0.0
             price_unavailable = True
         else:
@@ -489,13 +495,11 @@ async def get_portfolio(
             "buy_price":          row.buy_price,
             "buy_source":         buy_source,
             "quantity":           row.quantity,
-            # Все цены по источникам
             "price_steam":        pd.get("price_steam"),
             "price_lisskins":     pd.get("price_lisskins"),
             "price_market_csgo":  pd.get("price_market_csgo"),
             "best_price":         round(best_price, 2),
             "best_source":        pd.get("best_source"),
-            # P&L считается строго по площадке покупки
             "current_price":      round(current_on_source, 2),
             "price_source_used":  buy_source,
             "price_unavailable":  price_unavailable,
