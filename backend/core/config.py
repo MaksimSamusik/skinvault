@@ -17,6 +17,7 @@ STEAM_API_KEY = os.getenv("STEAM_API_KEY", "")
 STEAM_OPENID_RETURN = os.getenv("STEAM_OPENID_RETURN", "")
 CSGOMARKET_API_KEY = os.getenv("CSGOMARKET_API_KEY", "")
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 STEAM_PRICE_URL      = "https://steamcommunity.com/market/priceoverview/"
 STEAM_SEARCH_URL     = "https://steamcommunity.com/market/search/render/"

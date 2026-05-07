@@ -6,6 +6,22 @@ class Base(DeclarativeBase):
     pass
 
 
+class User(Base):
+    """Связка Telegram tg_user_id ↔ Steam steam_id для алертов и подписки."""
+    __tablename__ = "users"
+
+    tg_user_id    = Column(BigInteger, primary_key=True)
+    steam_id      = Column(String(32),  nullable=True)
+    locale        = Column(String(8),   nullable=False, default="ru")
+    currency      = Column(String(8),   nullable=False, default="USD")
+    created_at    = Column(BigInteger,  nullable=False, default=0)
+    last_seen_at  = Column(BigInteger,  nullable=False, default=0)
+
+    __table_args__ = (
+        Index("ix_users_steam_id", "steam_id"),
+    )
+
+
 class Portfolio(Base):
     """Один ряд = один лот покупки. На (steam_id, market_hash_name) может быть много лотов."""
     __tablename__ = "portfolios"

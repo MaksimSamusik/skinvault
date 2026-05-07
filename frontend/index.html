@@ -689,6 +689,7 @@ async function submitNewAccount() {
     const resolved = await resolveAccount(raw);
     upsertAccount({ steam_id: resolved.steam_id, vanity: resolved.vanity, name: name || null });
     setActiveAccountId(resolved.steam_id);
+    linkSteamToTg(resolved.steam_id);
     closeAccDropdown();
     renderAccountsUI();
     await loadPortfolio();
@@ -703,6 +704,7 @@ async function resolveAccount(raw) {
 
 async function switchAccount(steamId) {
   setActiveAccountId(steamId);
+  linkSteamToTg(steamId);
   closeAccDropdown();
   renderAccountsUI();
   await loadPortfolio();
@@ -726,6 +728,7 @@ async function addAndLoadAccount() {
     const resolved = await resolveAccount(raw);
     upsertAccount({ steam_id: resolved.steam_id, vanity: resolved.vanity, name: null });
     setActiveAccountId(resolved.steam_id);
+    linkSteamToTg(resolved.steam_id);
     renderAccountsUI();
     await loadPortfolio();
   } catch (e) { showToast('Ошибка: ' + e.message); }
@@ -737,7 +740,32 @@ document.addEventListener('click', (e) => {
 });
 
 const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0a0e1a'); tg.setBackgroundColor('#060912'); }
+if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#080d1c'); tg.setBackgroundColor('#050912'); }
+
+// ── Telegram user state ────────────────────────────────────────────────────────
+let currentTgUser = null;  // {tg_user_id, steam_id, locale, currency, ...}
+
+async function ensureTgUser() {
+  if (!tg?.initData) return null;  // not in Telegram (dev в браузере) — пропускаем
+  try {
+    currentTgUser = await apiFetch('/api/me');
+    return currentTgUser;
+  } catch (e) {
+    console.warn('[tg-auth]', e.message);
+    return null;
+  }
+}
+
+async function linkSteamToTg(steamId) {
+  if (!currentTgUser || !steamId) return;
+  if (currentTgUser.steam_id === steamId) return;
+  try {
+    currentTgUser = await apiFetch('/api/me/link-steam', {
+      method: 'POST',
+      body: JSON.stringify({ steam_id: steamId }),
+    });
+  } catch (e) { console.warn('[tg-link-steam]', e.message); }
+}
 
 // ── Rarity ─────────────────────────────────────────────────────────────────────
 const RARITY_COLORS = { covert:'#f43f5e', classified:'#c8a8ff', restricted:'#818cf8', mil_spec_grade:'#5cb6f5', industrial_grade:'#4a8db8', extraordinary:'#fbbf24' };
@@ -752,7 +780,10 @@ function rarityTag(r) {
 
 // ── API ────────────────────────────────────────────────────────────────────────
 async function apiFetch(path, opts={}) {
-  const res = await fetch(API+path, { headers:{'Content-Type':'application/json'}, ...opts });
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  const initData = window.Telegram?.WebApp?.initData;
+  if (initData) headers['X-Telegram-Init-Data'] = initData;
+  const res = await fetch(API+path, { ...opts, headers });
   if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.detail||`HTTP ${res.status}`); }
   return res.json();
 }
@@ -1354,12 +1385,14 @@ function showToast(msg) {
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
-(function init() {
+(async function init() {
+  await ensureTgUser();
   renderAccountsUI();
   const active = getActiveAccountId();
   if (active) {
     currentSteamId = active;
     document.getElementById('addSteamId').value = active;
+    linkSteamToTg(active);
     loadPortfolio();
   }
 })();
