@@ -63,3 +63,24 @@ class PriceHistory(Base):
     __table_args__ = (
         Index("ix_history_name_time", "market_hash_name", "recorded_at"),
     )
+
+
+class PriceAlert(Base):
+    """Прайс-алерт юзера: уведомить когда цена X пересекает threshold в направлении condition."""
+    __tablename__ = "price_alerts"
+
+    id                = Column(Integer,    primary_key=True, autoincrement=True)
+    tg_user_id        = Column(BigInteger, nullable=False, index=True)
+    market_hash_name  = Column(String(255), nullable=False)
+    condition         = Column(String(8),  nullable=False)
+    threshold         = Column(Float,      nullable=False)
+    source            = Column(String(32), nullable=False, default="best")
+    is_active         = Column(Integer,    nullable=False, default=1)
+    created_at        = Column(BigInteger, nullable=False, default=0)
+    last_fired_at     = Column(BigInteger, nullable=True)
+    fired_count       = Column(Integer,    nullable=False, default=0)
+
+    __table_args__ = (
+        Index("ix_alerts_user_active", "tg_user_id", "is_active"),
+        Index("ix_alerts_name", "market_hash_name"),
+    )

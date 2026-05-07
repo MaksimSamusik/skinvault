@@ -15,7 +15,10 @@ from core.http import close_client
 from db.models import Portfolio, PriceCache
 from db.session import AsyncSessionLocal, init_db
 from services import lisskins
+from services.alerts_checker import check_alerts
 from services.pricing import fetch_all_prices
+
+ALERTS_CHECK_INTERVAL = 30 * 60
 
 
 async def _warmup_one(name: str, sem: asyncio.Semaphore) -> bool:
@@ -78,9 +81,15 @@ async def lifespan(app: FastAPI):
 
     asyncio.create_task(warmup_price_cache())
 
+    async def _check_alerts_logged():
+        stats = await check_alerts()
+        if stats["fired"]:
+            print(f"[alerts] checked={stats['checked']} fired={stats['fired']}")
+
     bg_tasks = [
         asyncio.create_task(_periodic("price-refresh", PRICE_REFRESH_INTERVAL, warmup_price_cache)),
         asyncio.create_task(_periodic("lisskins-refresh", LISSKINS_REFRESH_INTERVAL, lisskins.refresh_prices)),
+        asyncio.create_task(_periodic("alerts-check", ALERTS_CHECK_INTERVAL, _check_alerts_logged)),
     ]
 
     try:

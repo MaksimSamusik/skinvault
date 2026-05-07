@@ -439,6 +439,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;background-ima
   <div class="tab active" data-tab="items" onclick="switchTabEl(this)">ПОРТФОЛИО</div>
   <div class="tab" data-tab="career" onclick="switchTabEl(this)">КАРЬЕРА</div>
   <div class="tab" data-tab="add" onclick="switchTabEl(this)">+ ДОБАВИТЬ</div>
+  <div class="tab" data-tab="alerts" onclick="switchTabEl(this); loadAlerts()">АЛЕРТЫ</div>
   <div class="tab" data-tab="analytics" onclick="switchTabEl(this)">ТОП</div>
 </div>
 
@@ -500,6 +501,45 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;background-ima
           <input class="form-input" id="addSteamId" placeholder="76561198..."/>
         </div>
         <button class="btn-add-submit" onclick="submitAddItem()">Добавить в портфолио</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-alerts">
+    <div class="add-section">
+      <div class="section-title">Создать алерт</div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" id="alertSkinSearch" placeholder="AK-47 Redline..." oninput="onAlertSearchInput()"/>
+      </div>
+      <div id="alertSearchResults"></div>
+      <div id="alertForm" style="display:none" class="add-form">
+        <div class="selected-skin" id="alertSelectedSkin"></div>
+        <div class="form-row">
+          <label class="form-label">Условие</label>
+          <div class="source-selector">
+            <button class="source-btn active" data-cond="below" onclick="selectAlertCond(this)">↓ НИЖЕ</button>
+            <button class="source-btn" data-cond="above" onclick="selectAlertCond(this)">↑ ВЫШЕ</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Цена ($)</label>
+          <input class="form-input" id="alertThreshold" type="number" step="0.01" min="0" placeholder="0.00"/>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Источник</label>
+          <div class="source-selector">
+            <button class="source-btn active" data-src="best" onclick="selectAlertSrc(this)">ЛУЧШАЯ</button>
+            <button class="source-btn" data-src="steam" onclick="selectAlertSrc(this)">STEAM</button>
+            <button class="source-btn" data-src="lisskins" onclick="selectAlertSrc(this)">LISSKINS</button>
+            <button class="source-btn" data-src="market_csgo" onclick="selectAlertSrc(this)">MKT.CSGO</button>
+          </div>
+        </div>
+        <button class="btn-add-submit" onclick="submitAlert()">Создать алерт</button>
+      </div>
+      <div class="section-title" style="margin-top:18px">Активные алерты</div>
+      <div id="alertsList">
+        <div class="empty"><div class="empty-icon">◈</div><div class="empty-text">Загрузка...</div></div>
       </div>
     </div>
   </div>
@@ -1362,6 +1402,121 @@ async function submitAddItem() {
     pendingSkin=null;
     switchTabById('items'); loadPortfolio();
   } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+// ── Alerts ─────────────────────────────────────────────────────────────────────
+let alertSearchTimeout = null;
+let alertPendingSkin = null;
+let alertCondition = 'below';
+let alertSourceSel = 'best';
+
+function selectAlertCond(btn) {
+  document.querySelectorAll('#panel-alerts [data-cond]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  alertCondition = btn.dataset.cond;
+}
+function selectAlertSrc(btn) {
+  document.querySelectorAll('#panel-alerts [data-src]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  alertSourceSel = btn.dataset.src;
+}
+
+function onAlertSearchInput() {
+  const q = document.getElementById('alertSkinSearch').value.trim();
+  const box = document.getElementById('alertSearchResults');
+  clearTimeout(alertSearchTimeout);
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  alertSearchTimeout = setTimeout(async () => {
+    try {
+      const data = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const results = data.results || [];
+      box.innerHTML = results.length ? `<div class="search-results">${results.slice(0,8).map((s,i)=>`
+        <div class="sr-item" onclick='pickAlertSkin(${JSON.stringify(s).replace(/"/g,"&quot;")})'>
+          ${s.image_url?`<img class="sr-thumb" src="${s.image_url}"/>`:`<div class="sr-thumb"></div>`}
+          <div class="sr-name">${s.market_hash_name}</div>
+        </div>`).join('')}</div>` : '';
+    } catch (e) { showToast('Ошибка поиска: ' + e.message); }
+  }, 300);
+}
+
+function pickAlertSkin(skin) {
+  alertPendingSkin = skin;
+  document.getElementById('alertSearchResults').innerHTML = '';
+  document.getElementById('alertSkinSearch').value = skin.market_hash_name;
+  document.getElementById('alertSelectedSkin').innerHTML = `
+    ${skin.image_url?`<img class="selected-thumb" src="${skin.image_url}"/>`:`<div class="selected-thumb"></div>`}
+    <div><div class="selected-name">${skin.market_hash_name}</div></div>
+  `;
+  document.getElementById('alertForm').style.display = 'block';
+}
+
+async function loadAlerts() {
+  const box = document.getElementById('alertsList');
+  if (!currentTgUser) {
+    box.innerHTML = '<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">Открой через Telegram чтобы создавать алерты</div></div>';
+    return;
+  }
+  box.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const data = await apiFetch('/api/alerts');
+    const alerts = data.alerts || [];
+    if (!alerts.length) {
+      box.innerHTML = '<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">Алертов пока нет</div></div>';
+      return;
+    }
+    box.innerHTML = alerts.map(a => {
+      const arrow = a.condition === 'below' ? '↓' : '↑';
+      const cls   = a.condition === 'below' ? 'c-red' : 'c-green';
+      const lastFired = a.last_fired_at
+        ? new Date(a.last_fired_at*1000).toLocaleDateString('ru-RU')
+        : '—';
+      return `
+        <div class="item-card" style="grid-template-columns:3px 1fr auto">
+          <div class="rarity-stripe" style="background:var(--amber)"></div>
+          <div class="item-info">
+            <div class="item-name">${a.market_hash_name}</div>
+            <div class="item-tags">
+              <span class="tag" style="color:var(--text2)"><span class="${cls}">${arrow}</span> $${a.threshold.toFixed(2)} (${a.source})</span>
+              <span class="tag" style="color:var(--muted)">срабатывал: ${lastFired} · ${a.fired_count}×</span>
+            </div>
+          </div>
+          <button class="lot-del" onclick="deleteAlert(${a.id})" title="Удалить">×</button>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    box.innerHTML = `<div class="empty"><div class="empty-text">Ошибка: ${e.message}</div></div>`;
+  }
+}
+
+async function submitAlert() {
+  if (!alertPendingSkin) { showToast('Выбери скин из поиска'); return; }
+  const threshold = parseFloat(document.getElementById('alertThreshold').value);
+  if (!threshold || threshold <= 0) { showToast('Введи корректную цену'); return; }
+  try {
+    await apiFetch('/api/alerts', {
+      method: 'POST',
+      body: JSON.stringify({
+        market_hash_name: alertPendingSkin.market_hash_name,
+        condition: alertCondition,
+        threshold,
+        source: alertSourceSel,
+      }),
+    });
+    showToast('Алерт создан');
+    document.getElementById('alertForm').style.display = 'none';
+    document.getElementById('alertSkinSearch').value = '';
+    document.getElementById('alertThreshold').value = '';
+    alertPendingSkin = null;
+    loadAlerts();
+  } catch (e) { showToast('Ошибка: ' + e.message); }
+}
+
+async function deleteAlert(id) {
+  if (!confirm('Удалить алерт?')) return;
+  try {
+    await apiFetch(`/api/alerts/${id}`, { method: 'DELETE' });
+    loadAlerts();
+  } catch (e) { showToast('Ошибка: ' + e.message); }
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────────
