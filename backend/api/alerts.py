@@ -54,7 +54,7 @@ async def create_alert(
         .where(PriceAlert.tg_user_id == tg_id, PriceAlert.is_active == 1)
     )).scalar_one()
 
-    limit = max_alerts(tg_id)
+    limit = await max_alerts(tg_id, session)
     if active_count >= limit:
         raise HTTPException(
             status_code=402,

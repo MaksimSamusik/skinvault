@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from api import admin, alerts, auth, health, inventory, me, portfolio, prices
+from api import admin, alerts, auth, billing, health, inventory, me, portfolio, prices
 from core.config import FRONTEND_DIR
 from core.lifespan import lifespan
 
@@ -24,6 +24,7 @@ app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(me.router)
 app.include_router(alerts.router)
+app.include_router(billing.router)
 
 
 if FRONTEND_DIR.is_dir():

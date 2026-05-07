@@ -65,6 +65,27 @@ class PriceHistory(Base):
     )
 
 
+class Subscription(Base):
+    """История платежей и активные подписки. Активная = expires_at > now()."""
+    __tablename__ = "subscriptions"
+
+    id              = Column(Integer,    primary_key=True, autoincrement=True)
+    tg_user_id      = Column(BigInteger, nullable=False, index=True)
+    tier            = Column(String(16), nullable=False)
+    started_at      = Column(BigInteger, nullable=False)
+    expires_at      = Column(BigInteger, nullable=False, index=True)
+    payment_method  = Column(String(16), nullable=False)
+    payment_id      = Column(String(128), nullable=True)
+    amount          = Column(Float,      nullable=True)
+    currency        = Column(String(16), nullable=True)
+    created_at      = Column(BigInteger, nullable=False)
+
+    __table_args__ = (
+        Index("ix_subscriptions_user_expires", "tg_user_id", "expires_at"),
+        Index("ix_subscriptions_payment_id", "payment_id"),
+    )
+
+
 class PriceAlert(Base):
     """Прайс-алерт юзера: уведомить когда цена X пересекает threshold в направлении condition."""
     __tablename__ = "price_alerts"

@@ -370,6 +370,35 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;background-ima
 .overlay.show{display:block;animation:overlay-in .2s ease}
 @keyframes overlay-in{from{opacity:0}to{opacity:1}}
 .divider{height:1px;background:var(--line);margin:0 14px}
+
+/* TIER BADGE (header) */
+.tier-badge{font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1.5px;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.tier-badge.tier-free{background:var(--bg3);border:1px solid var(--line2);color:var(--muted)}
+.tier-badge.tier-free:hover{border-color:var(--gold);color:var(--gold)}
+.tier-badge.tier-premium{background:var(--gold-bg);border:1px solid rgba(251,191,36,.4);color:var(--gold);box-shadow:var(--glow-gold)}
+.tier-badge.tier-pro{background:linear-gradient(135deg,rgba(200,168,255,.15),rgba(251,191,36,.15));border:1px solid rgba(200,168,255,.4);color:var(--purple);box-shadow:0 0 14px rgba(200,168,255,.3)}
+
+/* UPSELL MODAL */
+.upsell-modal{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--bg2) 0%,var(--bg1) 100%);border-top:1px solid var(--line3);border-radius:16px 16px 0 0;padding:0 16px 36px;transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);z-index:110;max-height:90vh;overflow-y:auto;box-shadow:0 -16px 40px rgba(0,0,0,.55),0 -1px 0 rgba(251,191,36,.15)}
+.upsell-modal.open{transform:translateY(0)}
+.upsell-title{text-align:center;font-size:18px;font-weight:700;margin:18px 0 4px;letter-spacing:.2px}
+.upsell-sub{text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px;margin-bottom:18px}
+.tier-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.tier-card{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r2);padding:14px;position:relative;overflow:hidden}
+.tier-card.featured{border-color:rgba(251,191,36,.45);box-shadow:0 0 24px rgba(251,191,36,.10)}
+.tier-card.featured::before{content:'РЕКОМЕНДУЕМ';position:absolute;top:0;right:0;background:var(--gold);color:#0a0808;font-family:var(--mono);font-size:8px;font-weight:800;padding:3px 9px;border-radius:0 0 0 6px;letter-spacing:1.2px}
+.tier-card-name{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--text);text-transform:uppercase;margin-bottom:8px}
+.tier-card-name.premium{color:var(--gold);text-shadow:0 0 10px rgba(251,191,36,.3)}
+.tier-card-name.pro{color:var(--purple);text-shadow:0 0 10px rgba(200,168,255,.3)}
+.tier-features{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:12px;letter-spacing:.2px}
+.tier-features .check{color:var(--green2);margin-right:5px;font-weight:700}
+.tier-pay-row{display:flex;gap:6px}
+.btn-pay{flex:1;padding:11px;border-radius:var(--r);font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;cursor:pointer;border:none;transition:all .15s}
+.btn-pay-stars{background:linear-gradient(180deg,var(--gold) 0%,var(--gold2) 100%);color:#1a1408;box-shadow:0 1px 0 rgba(255,255,255,.15) inset,0 -1px 0 rgba(0,0,0,.2) inset,var(--glow-gold)}
+.btn-pay-stars:hover{box-shadow:0 1px 0 rgba(255,255,255,.15) inset,0 -1px 0 rgba(0,0,0,.2) inset,0 0 28px rgba(251,191,36,.5);transform:translateY(-1px)}
+.btn-pay-crypto{background:var(--bg4);color:var(--text);border:1px solid var(--line3)}
+.btn-pay-crypto:hover{background:var(--bg5);border-color:var(--amber);box-shadow:var(--glow-amber)}
+.upsell-footer{text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:.3px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -381,7 +410,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;background-ima
       <div class="logo-text">Skin<span>Vault</span></div>
       <div class="logo-badge">CS2</div>
     </div>
-    <div class="live-dot">live</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="tier-badge tier-free" id="tierBadge" onclick="openUpsell()">FREE</div>
+      <div class="live-dot">live</div>
+    </div>
   </div>
   <div class="acc-bar" id="accBar" style="display:none">
     <div class="acc-current" onclick="toggleAccDropdown()">
@@ -560,6 +592,44 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;background-ima
   <div class="detail-drag"></div>
   <div id="detailContent"></div>
 </div>
+
+<div class="overlay" id="upsellOverlay" onclick="closeUpsell()"></div>
+<div class="upsell-modal" id="upsellModal">
+  <div class="detail-drag"></div>
+  <div class="upsell-title">Снимите лимиты</div>
+  <div class="upsell-sub" id="upsellReason">Расширь возможности SkinVault</div>
+  <div class="tier-cards">
+    <div class="tier-card featured">
+      <div class="tier-card-name premium">★ Premium · 30 дней</div>
+      <div class="tier-features">
+        <div><span class="check">✓</span>До 100 алертов одновременно</div>
+        <div><span class="check">✓</span>До 500 предметов в портфолио</div>
+        <div><span class="check">✓</span>365 дней истории цен</div>
+        <div><span class="check">✓</span>3 портфолио (разные аккаунты)</div>
+        <div><span class="check">✓</span>CSV-экспорт</div>
+      </div>
+      <div class="tier-pay-row">
+        <button class="btn-pay btn-pay-stars" onclick="checkout('premium','stars')">75 ⭐ Stars</button>
+        <button class="btn-pay btn-pay-crypto" onclick="checkout('premium','crypto')">$1.5 USDT</button>
+      </div>
+    </div>
+    <div class="tier-card">
+      <div class="tier-card-name pro">⬢ Pro · 30 дней</div>
+      <div class="tier-features">
+        <div><span class="check">✓</span>Всё из Premium</div>
+        <div><span class="check">✓</span>Безлимит алертов и портфолио</div>
+        <div><span class="check">✓</span>Арбитраж-алерты между маркетами</div>
+        <div><span class="check">✓</span>Приоритетный refresh цен</div>
+      </div>
+      <div class="tier-pay-row">
+        <button class="btn-pay btn-pay-stars" onclick="checkout('pro','stars')">250 ⭐ Stars</button>
+        <button class="btn-pay btn-pay-crypto" onclick="checkout('pro','crypto')">$5 USDT</button>
+      </div>
+    </div>
+  </div>
+  <div class="upsell-footer">Платежи через Telegram Stars и CryptoBot. Подписка автоматически продлеваема через повторную оплату.</div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -824,7 +894,12 @@ async function apiFetch(path, opts={}) {
   const initData = window.Telegram?.WebApp?.initData;
   if (initData) headers['X-Telegram-Init-Data'] = initData;
   const res = await fetch(API+path, { ...opts, headers });
-  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.detail||`HTTP ${res.status}`); }
+  if (!res.ok) {
+    const body = await res.json().catch(()=>({}));
+    const err = new Error(body.detail || `HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
   return res.json();
 }
 
@@ -1404,6 +1479,86 @@ async function submitAddItem() {
   } catch(e) { showToast('Ошибка: '+e.message); }
 }
 
+// ── Subscription & upsell ─────────────────────────────────────────────────────
+let currentSub = null;  // {tier, expires_at, ...}
+
+async function refreshSubscription() {
+  if (!tg?.initData) return;
+  try {
+    currentSub = await apiFetch('/api/billing/me');
+    renderTierBadge();
+  } catch (e) {
+    console.warn('[sub]', e.message);
+  }
+}
+
+function renderTierBadge() {
+  const el = document.getElementById('tierBadge');
+  if (!el) return;
+  const tier = currentSub?.tier || 'free';
+  el.className = 'tier-badge tier-' + tier;
+  el.textContent = tier.toUpperCase();
+}
+
+function openUpsell(reason) {
+  document.getElementById('upsellOverlay').classList.add('show');
+  document.getElementById('upsellModal').classList.add('open');
+  if (reason) document.getElementById('upsellReason').textContent = reason;
+  else document.getElementById('upsellReason').textContent = 'Расширь возможности SkinVault';
+}
+function closeUpsell() {
+  document.getElementById('upsellOverlay').classList.remove('show');
+  document.getElementById('upsellModal').classList.remove('open');
+}
+
+async function checkout(tier, method) {
+  if (!tg?.initData) { showToast('Открой через Telegram чтобы платить'); return; }
+  try {
+    const r = await apiFetch('/api/billing/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ tier, method }),
+    });
+    if (method === 'stars') {
+      tg.openInvoice(r.url, status => {
+        closeUpsell();
+        if (status === 'paid') {
+          showToast('Оплата прошла, обновляем подписку...');
+          // Сервер получит webhook и продлит подписку. Подождём 2с и обновим.
+          setTimeout(() => refreshSubscription(), 2000);
+        } else if (status === 'cancelled') {
+          showToast('Отменено');
+        } else if (status === 'failed') {
+          showToast('Ошибка оплаты');
+        }
+      });
+    } else {
+      // CryptoBot
+      tg.openTelegramLink(r.url);
+      closeUpsell();
+      showToast('Откроется CryptoBot. После оплаты вернись сюда.');
+      // Webhook продлит подписку. Поллим /api/billing/me каждые 5с в течение минуты.
+      pollSubscriptionUpdate();
+    }
+  } catch (e) {
+    showToast('Ошибка checkout: ' + e.message);
+  }
+}
+
+function pollSubscriptionUpdate() {
+  const startTier = currentSub?.tier || 'free';
+  let tries = 0;
+  const tick = async () => {
+    tries++;
+    await refreshSubscription();
+    if (currentSub?.tier !== startTier) {
+      showToast('Подписка активирована! Tier: ' + currentSub.tier);
+      return;
+    }
+    if (tries < 12) setTimeout(tick, 5000);
+  };
+  setTimeout(tick, 4000);
+}
+
 // ── Alerts ─────────────────────────────────────────────────────────────────────
 let alertSearchTimeout = null;
 let alertPendingSkin = null;
@@ -1508,7 +1663,13 @@ async function submitAlert() {
     document.getElementById('alertThreshold').value = '';
     alertPendingSkin = null;
     loadAlerts();
-  } catch (e) { showToast('Ошибка: ' + e.message); }
+  } catch (e) {
+    if (e.status === 402) {
+      openUpsell(e.message);
+    } else {
+      showToast('Ошибка: ' + e.message);
+    }
+  }
 }
 
 async function deleteAlert(id) {
@@ -1542,6 +1703,7 @@ function showToast(msg) {
 // ── Init ───────────────────────────────────────────────────────────────────────
 (async function init() {
   await ensureTgUser();
+  refreshSubscription();
   renderAccountsUI();
   const active = getActiveAccountId();
   if (active) {
