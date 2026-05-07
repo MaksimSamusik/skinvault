@@ -5,6 +5,7 @@ from fastapi import APIRouter, Header, HTTPException, Query
 
 from core.config import ADMIN_TOKEN
 from services import lisskins
+from services.snapshots import take_snapshots
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -34,6 +35,15 @@ async def trigger_lisskins_refresh(
         "ok": True,
         "message": "refresh запущен в фоне; следи за логами или вызови с ?wait=true",
     }
+
+
+@router.post("/snapshot")
+async def trigger_snapshot(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+):
+    """Ручной триггер снапшотов портфолио для всех steam_id."""
+    _check_token(x_admin_token)
+    return {"ok": True, "result": await take_snapshots()}
 
 
 @router.get("/lisskins-status")

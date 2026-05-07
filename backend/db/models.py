@@ -86,6 +86,22 @@ class Subscription(Base):
     )
 
 
+class PortfolioSnapshot(Base):
+    """Ежедневный снимок стоимости портфолио. Один ряд на (steam_id, day)."""
+    __tablename__ = "portfolio_snapshots"
+
+    id              = Column(Integer,    primary_key=True, autoincrement=True)
+    steam_id        = Column(String(32), nullable=False)
+    recorded_at     = Column(BigInteger, nullable=False)
+    total_value     = Column(Float,      nullable=False)
+    total_invested  = Column(Float,      nullable=False)
+    item_count      = Column(Integer,    nullable=False, default=0)
+
+    __table_args__ = (
+        Index("ix_snapshots_steam_time", "steam_id", "recorded_at"),
+    )
+
+
 class PriceAlert(Base):
     """Прайс-алерт юзера: уведомить когда цена X пересекает threshold в направлении condition."""
     __tablename__ = "price_alerts"

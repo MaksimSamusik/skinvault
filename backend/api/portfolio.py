@@ -1,18 +1,56 @@
 import asyncio
 import time
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import Portfolio
+from core.auth import _verify
+from core.config import BOT_TOKEN
+from db.models import Portfolio, PortfolioSnapshot, User
 from db.session import get_session
 from schemas import AddItemRequest, UpdateItemRequest
 from services import inventory_cache
+from services.billing import (
+    FREE_HISTORY_DAYS,
+    PREMIUM_HISTORY_DAYS,
+    PRO_HISTORY_DAYS,
+    current_tier,
+)
 from services.pricing import SOURCE_KEY_MAP, get_cached_price
 from services.steam import resolve_steam_id
 
 router = APIRouter(prefix="/api/portfolio", tags=["portfolio"])
+
+HISTORY_DAYS_BY_TIER = {
+    "free":    FREE_HISTORY_DAYS,
+    "premium": PREMIUM_HISTORY_DAYS,
+    "pro":     PRO_HISTORY_DAYS,
+}
+
+
+async def _tier_from_header(
+    init_data: str | None,
+    steam_id: str,
+    session: AsyncSession,
+) -> str:
+    """Если есть валидный X-Telegram-Init-Data и юзер привязан к этому steam_id —
+    возвращает его tier, иначе free. Не падает на ошибках верификации."""
+    if not BOT_TOKEN or not init_data:
+        return "free"
+    try:
+        tg_user = _verify(init_data, BOT_TOKEN, 24 * 3600)
+    except HTTPException:
+        return "free"
+    tg_id = int(tg_user.get("id") or 0)
+    if not tg_id:
+        return "free"
+    user = (await session.execute(
+        select(User).where(User.tg_user_id == tg_id)
+    )).scalar_one_or_none()
+    if not user or user.steam_id != steam_id:
+        return "free"
+    return await current_tier(tg_id, session)
 
 
 def _normalize_source(s: str | None) -> str:
@@ -241,3 +279,49 @@ async def delete_all_lots(
     )
     await session.commit()
     return {"ok": True, "deleted": res.rowcount or 0}
+
+
+@router.get("/{steam_id}/history")
+async def portfolio_history(
+    steam_id: str,
+    days: int = Query(default=0, ge=0, le=3650),
+    x_telegram_init_data: str | None = Header(default=None, alias="X-Telegram-Init-Data"),
+    session: AsyncSession = Depends(get_session),
+):
+    """Снапшоты стоимости портфеля во времени. Free: до 7 дней, Premium: 365, Pro: 5 лет.
+
+    Параметр `days` — запрошенное окно. Сервер всегда обрезает до tier-лимита.
+    """
+    resolved = await resolve_steam_id(steam_id)
+    if not resolved.isdigit():
+        raise HTTPException(status_code=400, detail="Не удалось определить SteamID64")
+
+    tier = await _tier_from_header(x_telegram_init_data, resolved, session)
+    tier_cap_days = HISTORY_DAYS_BY_TIER.get(tier, FREE_HISTORY_DAYS)
+    window_days = min(days, tier_cap_days) if days > 0 else tier_cap_days
+    cutoff = int(time.time()) - window_days * 86400
+
+    rows = (await session.execute(
+        select(PortfolioSnapshot)
+        .where(
+            PortfolioSnapshot.steam_id == resolved,
+            PortfolioSnapshot.recorded_at >= cutoff,
+        )
+        .order_by(PortfolioSnapshot.recorded_at.asc())
+    )).scalars().all()
+
+    return {
+        "steam_id":   resolved,
+        "tier":       tier,
+        "tier_cap_days": tier_cap_days,
+        "window_days":   window_days,
+        "snapshots": [
+            {
+                "recorded_at":    r.recorded_at,
+                "total_value":    r.total_value,
+                "total_invested": r.total_invested,
+                "item_count":     r.item_count,
+                "pnl":            round(r.total_value - r.total_invested, 2),
+            } for r in rows
+        ],
+    }

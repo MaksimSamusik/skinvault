@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
 <title>SkinVault</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -179,9 +180,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;background-ima
 .chart-label{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
 .chart-label span:first-child::before{content:'┌─ ';color:var(--muted2)}
 .chart-label span:first-child::after{content:' ─┐';color:var(--muted2)}
-.chart-container{height:64px;background:linear-gradient(180deg,transparent,rgba(92,182,245,0.03));border-radius:var(--r);position:relative}
+.chart-container{height:84px;background:linear-gradient(180deg,transparent,rgba(92,182,245,0.03));border-radius:var(--r);position:relative;padding:4px}
 .chart-container::before{content:'';position:absolute;inset:0;background-image:linear-gradient(to right,rgba(129,140,248,0.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(129,140,248,0.04) 1px,transparent 1px);background-size:25% 33%;pointer-events:none;border-radius:var(--r)}
-#portfolioChart{width:100%;height:100%;position:relative;z-index:1}
+#portfolioChart{position:relative;z-index:1;width:100%!important;height:100%!important}
 
 /* TABS */
 .tabs{display:flex;border-bottom:1px solid var(--line2);flex-shrink:0;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg) 100%);position:relative}
@@ -463,8 +464,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;background-ima
 </div>
 
 <div class="chart-wrap" id="chartWrap">
-  <div class="chart-label"><span>ПОРТФОЛИО</span><span id="chartRange">30D</span></div>
-  <div class="chart-container"><svg id="portfolioChart"></svg></div>
+  <div class="chart-label"><span>ПОРТФОЛИО</span><span id="chartRange" onclick="cycleChartRange()" style="cursor:pointer">7D</span></div>
+  <div class="chart-container"><canvas id="portfolioChart"></canvas></div>
 </div>
 
 <div class="tabs">
@@ -961,7 +962,7 @@ async function loadPortfolio() {
     if (portData.summary) renderStats(portData.summary);
     renderItems(portfolio);
     renderAnalytics(trackedItems.length ? trackedItems : portfolio);
-    renderChart(trackedItems.length ? trackedItems : portfolio);
+    loadSnapshots(currentSteamId);
     updateCareer(portData.summary || { total_pnl:0, total_value:0, total_invested:0, total_pnl_pct:0 }, trackedItems.length);
     const totalAssets = invData.total_count || invData.items?.length || 0;
     showToast(`Загружено ${portfolio.length} групп / ${totalAssets} предметов`);
@@ -1023,7 +1024,7 @@ async function refreshInventory() {
       if (portData.summary) renderStats(portData.summary);
       renderItems(portfolio);
       renderAnalytics(trackedItems.length ? trackedItems : portfolio);
-      renderChart(trackedItems.length ? trackedItems : portfolio);
+      loadSnapshots(currentSteamId);
       updateCareer(portData.summary || { total_pnl:0, total_value:0, total_invested:0, total_pnl_pct:0 }, trackedItems.length);
       showToast(`Обновлено: ${portfolio.length} предметов`);
     }
@@ -1223,23 +1224,102 @@ function topRow(item, rank, red=false) {
 }
 
 // ── Chart ──────────────────────────────────────────────────────────────────────
-function renderChart(items) {
-  if (!items.length) return;
-  const total = items.reduce((s,i)=>s+i.total_value, 0);
-  if (total === 0) return;
-  document.getElementById('chartWrap').style.display = 'block';
-  const pts = Array.from({length:15},(_,k)=>{ const n=(Math.random()-.5)*total*.04; return total*(.88+.12*(k/14))+n; });
-  pts[pts.length-1] = total;
-  const svg = document.getElementById('portfolioChart');
-  const W = svg.parentElement.offsetWidth||320, H=60, pad=4;
-  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  const min=Math.min(...pts)-total*.01, max=Math.max(...pts)+total*.01;
-  const xs=pts.map((_,i)=>pad+(i/(pts.length-1))*(W-pad*2));
-  const ys=pts.map(v=>pad+(1-(v-min)/(max-min))*(H-pad*2));
-  const d=xs.map((x,i)=>`${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
-  const fill=d+` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
-  const color=pts[pts.length-1]>=pts[0]?'#10b981':'#f43f5e';
-  svg.innerHTML=`<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${fill}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="2.5" fill="${color}"/>`;
+const CHART_RANGES = [7, 30, 90, 365];
+let chartRangeDays = 7;
+let chartInstance = null;
+let lastSnapshots = [];   // {recorded_at, total_value, total_invested, pnl}[]
+
+function cycleChartRange() {
+  const cap = currentSub?.tier === 'pro' ? 1825 : currentSub?.tier === 'premium' ? 365 : 7;
+  const allowed = CHART_RANGES.filter(d => d <= cap);
+  const i = allowed.indexOf(chartRangeDays);
+  const next = allowed[(i + 1) % allowed.length] || 7;
+  if (next > cap) { openUpsell('Расширь окно истории до ' + next + ' дней'); return; }
+  chartRangeDays = next;
+  document.getElementById('chartRange').textContent = next + 'D';
+  if (currentSteamId) loadSnapshots(currentSteamId);
+}
+
+async function loadSnapshots(steamId) {
+  try {
+    const data = await apiFetch(`/api/portfolio/${steamId}/history?days=${chartRangeDays}`);
+    lastSnapshots = data.snapshots || [];
+    renderChart();
+    // Sync UI: показать актуальное окно (бэк может ужать tier-капом)
+    if (data.window_days) {
+      chartRangeDays = data.window_days;
+      document.getElementById('chartRange').textContent = data.window_days + 'D';
+    }
+  } catch (e) {
+    console.warn('[snapshots]', e.message);
+    lastSnapshots = [];
+    renderChart();
+  }
+}
+
+function renderChart() {
+  const wrap = document.getElementById('chartWrap');
+  const canvas = document.getElementById('portfolioChart');
+  if (!lastSnapshots.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const labels = lastSnapshots.map(s => {
+    const d = new Date(s.recorded_at*1000);
+    return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'short' });
+  });
+  const values = lastSnapshots.map(s => s.total_value);
+  const first = values[0], last = values[values.length-1];
+  const color = last >= first ? '#10b981' : '#f43f5e';
+
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        borderColor: color,
+        borderWidth: 1.8,
+        tension: 0.32,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: color,
+        pointHoverBorderColor: '#fff',
+        pointHoverBorderWidth: 1,
+        fill: true,
+        backgroundColor: ctx => {
+          const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 80);
+          g.addColorStop(0, color + '33');
+          g.addColorStop(1, color + '00');
+          return g;
+        },
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 250 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0c1428',
+          borderColor: 'rgba(125,180,255,0.18)',
+          borderWidth: 1,
+          titleFont: { family: 'JetBrains Mono', size: 10 },
+          bodyFont:  { family: 'JetBrains Mono', size: 11, weight: 700 },
+          padding: 8,
+          callbacks: {
+            label: ctx => '$' + ctx.parsed.y.toFixed(2),
+          },
+        },
+      },
+      scales: {
+        x: { display: false },
+        y: { display: false, grace: '4%' },
+      },
+      interaction: { intersect: false, mode: 'index' },
+    },
+  });
 }
 
 // ── Detail ─────────────────────────────────────────────────────────────────────
