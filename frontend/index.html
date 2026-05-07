@@ -63,6 +63,34 @@ body{display:flex;flex-direction:column}
 .btn-load{background:var(--amber2);color:#000;border:none;border-radius:var(--r);padding:8px 14px;font-size:12px;font-weight:700;font-family:var(--sans);cursor:pointer;letter-spacing:.3px;transition:opacity .15s,transform .1s}
 .btn-load:active{opacity:.8;transform:scale(.97)}
 
+/* ACCOUNT SWITCHER */
+.acc-bar{display:flex;gap:6px;align-items:center;margin-bottom:8px;position:relative}
+.acc-current{flex:1;display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:7px 11px;cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--text);transition:border-color .15s}
+.acc-current:hover{border-color:var(--amber)}
+.acc-current .acc-label{color:var(--muted);font-size:9px;letter-spacing:1px;margin-right:4px}
+.acc-current .acc-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-current .acc-caret{color:var(--muted);font-size:10px}
+.acc-add-btn{background:var(--bg3);border:1px solid var(--line2);color:var(--amber);border-radius:var(--r);width:32px;height:32px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--sans);line-height:1}
+.acc-add-btn:hover{border-color:var(--amber)}
+.acc-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.6);display:none}
+.acc-dropdown.open{display:block}
+.acc-row{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;font-family:var(--mono);font-size:12px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .12s}
+.acc-row:last-child{border-bottom:none}
+.acc-row:hover{background:var(--bg3)}
+.acc-row.active{background:rgba(249,199,79,.08);color:var(--amber)}
+.acc-row .acc-row-info{flex:1;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.acc-row-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-row-id{font-size:10px;color:var(--muted)}
+.acc-row-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;line-height:1;font-family:var(--sans)}
+.acc-row-del:hover{color:var(--red2)}
+.acc-add-form{padding:9px 11px;border-top:1px solid var(--line);background:var(--bg3)}
+.acc-add-form input{width:100%;background:var(--bg2);border:1px solid var(--line2);color:var(--text);border-radius:var(--r);padding:7px 9px;font-family:var(--mono);font-size:11px;outline:none;margin-bottom:6px}
+.acc-add-form input:focus{border-color:var(--amber)}
+.acc-add-form-row{display:flex;gap:5px}
+.acc-add-form-row button{flex:1;border-radius:var(--r);padding:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--sans);border:none}
+.acc-add-form-row .acc-add-ok{background:var(--amber2);color:#000}
+.acc-add-form-row .acc-add-cancel{background:var(--bg2);color:var(--muted);border:1px solid var(--line)}
+
 /* CAREER BANNER */
 .career-banner{margin:8px 14px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;position:relative;cursor:pointer;transition:border-color .2s}
 .career-banner:active{border-color:var(--amber)}
@@ -110,14 +138,19 @@ body{display:flex;flex-direction:column}
 .items-header{padding:9px 14px 5px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
 .items-header-title{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
 .items-count{font-family:var(--mono);font-size:10px;color:var(--blue);background:var(--blue-bg);padding:2px 8px;border-radius:4px;border:1px solid rgba(137,180,250,.15)}
+.btn-refresh{font-family:var(--mono);font-size:10px;color:var(--amber);background:var(--amber-bg);padding:2px 8px;border-radius:4px;border:1px solid rgba(249,199,79,.15);cursor:pointer;transition:opacity .15s}
+.btn-refresh:active{opacity:.6}
+.btn-refresh.spinning{pointer-events:none}
+.btn-refresh.spinning::before{content:'';display:inline-block;width:10px;height:10px;border:1.5px solid var(--amber);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:4px;vertical-align:middle}
 .item-card{display:grid;grid-template-columns:3px 52px 1fr auto;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s}
 .item-card:active{background:rgba(255,255,255,.03)}
 .item-card.untracked{opacity:.45}
 .item-card.selected{background:var(--amber-bg)}
 .rarity-stripe{width:3px;height:36px;border-radius:2px;flex-shrink:0}
-.item-thumb{width:52px;height:36px;border-radius:5px;background:var(--bg3);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.item-thumb{position:relative;width:52px;height:36px;border-radius:5px;background:var(--bg3);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .item-thumb img{width:100%;height:100%;object-fit:contain}
 .item-thumb .img-fallback{font-size:20px}
+.item-thumb .qty-badge{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.78);color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700;line-height:1;padding:2px 4px;border-radius:3px;border:1px solid rgba(249,199,79,.35);letter-spacing:0.3px;pointer-events:none}
 .item-info{min-width:0}
 .item-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-tags{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
@@ -153,6 +186,18 @@ body{display:flex;flex-direction:column}
 .btn-del{flex:1;background:var(--red-bg);color:var(--red2);border:1px solid rgba(243,139,168,.18);border-radius:var(--r);padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
 .btn-close{flex:1;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);border-radius:var(--r);padding:10px;font-size:12px;cursor:pointer;font-family:var(--sans)}
 .btn-track{flex:1;background:var(--amber2);color:#000;border:none;border-radius:var(--r);padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans)}
+
+/* LOTS */
+.lots-list{margin-bottom:12px;background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px}
+.lots-header{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
+.lot-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)}
+.lot-row:first-of-type{border-top:none}
+.lot-info{display:flex;gap:10px;align-items:center;font-family:var(--mono);font-size:11px}
+.lot-src{display:inline-block;font-size:9px;font-weight:700;background:var(--bg2);border:1px solid var(--line2);border-radius:3px;padding:2px 5px;color:var(--text2);letter-spacing:0.5px}
+.lot-qty{color:var(--text2)}
+.lot-price{color:var(--amber)}
+.lot-del{background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:3px;width:22px;height:22px;cursor:pointer;font-size:11px;line-height:1;padding:0;font-family:var(--sans)}
+.lot-del:hover{color:var(--red2);border-color:rgba(243,139,168,.35)}
 
 /* PRICES GRID (multi-market) */
 .prices-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px}
@@ -250,9 +295,18 @@ body{display:flex;flex-direction:column}
     </div>
     <div class="live-dot">live</div>
   </div>
-  <div class="steam-row">
-    <input class="steam-input" id="steamInput" placeholder="Steam64 ID  76561198..." inputmode="numeric"/>
-    <button class="btn-load" onclick="loadPortfolio()">ЗАГРУЗИТЬ</button>
+  <div class="acc-bar" id="accBar" style="display:none">
+    <div class="acc-current" onclick="toggleAccDropdown()">
+      <span class="acc-label">АККАУНТ</span>
+      <span class="acc-name" id="accCurrentName">—</span>
+      <span class="acc-caret">▾</span>
+    </div>
+    <button class="acc-add-btn" onclick="openAccAdd()" title="Добавить аккаунт">+</button>
+    <div class="acc-dropdown" id="accDropdown"></div>
+  </div>
+  <div class="steam-row" id="steamRow">
+    <input class="steam-input" id="steamInput" placeholder="Steam64 ID или vanity URL" inputmode="numeric"/>
+    <button class="btn-load" onclick="addAndLoadAccount()">ЗАГРУЗИТЬ</button>
   </div>
 </div>
 
@@ -305,7 +359,10 @@ body{display:flex;flex-direction:column}
   <div class="tab-panel active" id="panel-items">
     <div id="itemsHeader" style="display:none" class="items-header">
       <span class="items-header-title">ИНВЕНТАРЬ</span>
-      <span class="items-count" id="itemsCount">0 предметов</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="items-count" id="itemsCount">0 предметов</span>
+        <span class="btn-refresh" onclick="refreshInventory()">↻ Обновить</span>
+      </div>
     </div>
     <div id="itemsContent">
       <div class="empty">
@@ -339,7 +396,7 @@ body{display:flex;flex-direction:column}
           <input class="form-input" id="buyPrice" type="number" step="0.01" min="0" placeholder="0.00"/>
         </div>
         <div class="form-row">
-          <label class="form-label">Количество</label>
+          <label class="form-label">Количество <span id="qtyHint" style="float:right;font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:400"></span></label>
           <input class="form-input" id="buyQty" type="number" min="1" value="1"/>
         </div>
         <div class="form-row">
@@ -435,6 +492,162 @@ let currentRankData = null;
 let selectedBuySource = 'steam';
 let pendingPriceData = null;  // хранит цены текущего выбранного скина
 
+// ── Accounts (multi-portfolio) ────────────────────────────────────────────────
+const ACC_KEY = 'skv.accounts';
+const ACC_ACTIVE_KEY = 'skv.activeAccount';
+
+function loadAccounts() {
+  try { return JSON.parse(localStorage.getItem(ACC_KEY) || '[]'); } catch { return []; }
+}
+function saveAccounts(list) { localStorage.setItem(ACC_KEY, JSON.stringify(list)); }
+function getActiveAccountId() { return localStorage.getItem(ACC_ACTIVE_KEY) || ''; }
+function setActiveAccountId(id) { localStorage.setItem(ACC_ACTIVE_KEY, id); }
+function findAccount(id) { return loadAccounts().find(a => a.steam_id === id); }
+
+function upsertAccount(acc) {
+  const list = loadAccounts();
+  const idx = list.findIndex(a => a.steam_id === acc.steam_id);
+  if (idx >= 0) list[idx] = { ...list[idx], ...acc };
+  else list.push(acc);
+  saveAccounts(list);
+}
+
+function removeAccount(steamId) {
+  const list = loadAccounts().filter(a => a.steam_id !== steamId);
+  saveAccounts(list);
+  if (getActiveAccountId() === steamId) {
+    setActiveAccountId(list[0]?.steam_id || '');
+  }
+}
+
+function renderAccountsUI() {
+  const accounts = loadAccounts();
+  const accBar = document.getElementById('accBar');
+  const steamRow = document.getElementById('steamRow');
+  const dropdown = document.getElementById('accDropdown');
+  const nameEl = document.getElementById('accCurrentName');
+
+  if (accounts.length === 0) {
+    accBar.style.display = 'none';
+    steamRow.style.display = 'flex';
+    return;
+  }
+
+  accBar.style.display = 'flex';
+  steamRow.style.display = 'none';
+
+  const active = findAccount(getActiveAccountId()) || accounts[0];
+  if (active && active.steam_id !== getActiveAccountId()) setActiveAccountId(active.steam_id);
+  nameEl.textContent = active ? (active.name || active.vanity || active.steam_id) : '—';
+
+  dropdown.innerHTML = accounts.map(a => `
+    <div class="acc-row${a.steam_id===active?.steam_id?' active':''}" onclick="switchAccount('${a.steam_id}')">
+      <div class="acc-row-info">
+        <div class="acc-row-name">${a.name || a.vanity || a.steam_id}</div>
+        <div class="acc-row-id">${a.steam_id}</div>
+      </div>
+      <button class="acc-row-del" onclick="event.stopPropagation();confirmRemoveAccount('${a.steam_id}')" title="Удалить">×</button>
+    </div>
+  `).join('') + `
+    <div class="acc-add-form" id="accAddForm" style="display:none">
+      <input id="accAddInput" placeholder="Steam64 ID или vanity URL" />
+      <input id="accAddName" placeholder="Имя (опционально)" />
+      <div class="acc-add-form-row">
+        <button class="acc-add-ok" onclick="submitNewAccount()">Добавить</button>
+        <button class="acc-add-cancel" onclick="closeAccAdd()">Отмена</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleAccDropdown() {
+  document.getElementById('accDropdown').classList.toggle('open');
+}
+
+function closeAccDropdown() {
+  document.getElementById('accDropdown').classList.remove('open');
+  closeAccAdd();
+}
+
+function openAccAdd() {
+  const accounts = loadAccounts();
+  if (accounts.length === 0) {
+    // нет аккаунтов: используем плоский input
+    document.getElementById('steamInput').focus();
+    return;
+  }
+  document.getElementById('accDropdown').classList.add('open');
+  const form = document.getElementById('accAddForm');
+  if (form) {
+    form.style.display = 'block';
+    document.getElementById('accAddInput').focus();
+  }
+}
+
+function closeAccAdd() {
+  const form = document.getElementById('accAddForm');
+  if (form) {
+    form.style.display = 'none';
+    document.getElementById('accAddInput').value = '';
+    document.getElementById('accAddName').value = '';
+  }
+}
+
+async function submitNewAccount() {
+  const raw = document.getElementById('accAddInput').value.trim();
+  const name = document.getElementById('accAddName').value.trim();
+  if (!raw) { showToast('Введите Steam ID или ник'); return; }
+  try {
+    const resolved = await resolveAccount(raw);
+    upsertAccount({ steam_id: resolved.steam_id, vanity: resolved.vanity, name: name || null });
+    setActiveAccountId(resolved.steam_id);
+    closeAccDropdown();
+    renderAccountsUI();
+    await loadPortfolio();
+  } catch (e) { showToast('Ошибка: ' + e.message); }
+}
+
+async function resolveAccount(raw) {
+  if (/^\d+$/.test(raw)) return { steam_id: raw, vanity: null };
+  const r = await apiFetch(`/api/resolve/${encodeURIComponent(raw)}`);
+  return { steam_id: r.steam_id, vanity: raw };
+}
+
+async function switchAccount(steamId) {
+  setActiveAccountId(steamId);
+  closeAccDropdown();
+  renderAccountsUI();
+  await loadPortfolio();
+}
+
+function confirmRemoveAccount(steamId) {
+  const acc = findAccount(steamId);
+  const label = acc?.name || acc?.vanity || steamId;
+  if (!confirm(`Удалить аккаунт "${label}" из списка?\n(данные портфолио в БД останутся)`)) return;
+  removeAccount(steamId);
+  closeAccDropdown();
+  renderAccountsUI();
+  if (getActiveAccountId()) loadPortfolio();
+  else { currentSteamId=''; portfolio=[]; renderItems([]); }
+}
+
+async function addAndLoadAccount() {
+  const raw = document.getElementById('steamInput').value.trim();
+  if (!raw) { showToast('Введите Steam ID или ник'); return; }
+  try {
+    const resolved = await resolveAccount(raw);
+    upsertAccount({ steam_id: resolved.steam_id, vanity: resolved.vanity, name: null });
+    setActiveAccountId(resolved.steam_id);
+    renderAccountsUI();
+    await loadPortfolio();
+  } catch (e) { showToast('Ошибка: ' + e.message); }
+}
+
+document.addEventListener('click', (e) => {
+  const bar = document.getElementById('accBar');
+  if (bar && !bar.contains(e.target)) closeAccDropdown();
+});
+
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0a0e1a'); tg.setBackgroundColor('#060912'); }
 
@@ -458,7 +671,9 @@ async function apiFetch(path, opts={}) {
 
 // ── Load ───────────────────────────────────────────────────────────────────────
 async function loadPortfolio() {
-  const steamId = document.getElementById('steamInput').value.trim();
+  const activeId = getActiveAccountId();
+  const inputId = document.getElementById('steamInput').value.trim();
+  const steamId = activeId || inputId;
   if (!steamId) { showToast('Введите Steam ID'); return; }
   currentSteamId = steamId;
   document.getElementById('addSteamId').value = steamId;
@@ -476,19 +691,24 @@ async function loadPortfolio() {
 
     portfolio = (invData.items || []).map(inv => {
       const saved = portMap[inv.market_hash_name];
+      const invQty = inv.quantity ?? 1;
       return {
         market_hash_name: inv.market_hash_name,
         image_url: inv.image_url,
         rarity: inv.rarity, wear: inv.wear, tradable: inv.tradable,
+        inventory_quantity: invQty,
         buy_price:        saved?.buy_price        ?? null,
         buy_source:       saved?.buy_source       ?? 'steam',
-        quantity:         saved?.quantity         ?? 1,
-        current_price:    saved?.current_price    ?? 0,
-        best_price:       saved?.best_price       ?? saved?.current_price ?? 0,
-        price_steam:      saved?.price_steam      ?? null,
-        price_lisskins:   saved?.price_lisskins   ?? null,
-        price_market_csgo:saved?.price_market_csgo ?? null,
-        best_source:      saved?.best_source      ?? 'steam',
+        quantity:         saved?.quantity         ?? invQty,
+        lots:             saved?.lots             ?? [],
+        lot_count:        saved?.lot_count        ?? 0,
+        avg_buy_price:    saved?.avg_buy_price    ?? null,
+        current_price:    saved?.current_price    ?? inv.current_price    ?? 0,
+        best_price:       saved?.best_price       ?? inv.best_price       ?? saved?.current_price ?? 0,
+        price_steam:      saved?.price_steam      ?? inv.price_steam      ?? null,
+        price_lisskins:   saved?.price_lisskins   ?? inv.price_lisskins   ?? null,
+        price_market_csgo:saved?.price_market_csgo ?? inv.price_market_csgo ?? null,
+        best_source:      saved?.best_source      ?? inv.best_source      ?? 'steam',
         total_value:      saved?.total_value      ?? 0,
         invested:         saved?.invested         ?? 0,
         pnl:              saved?.pnl              ?? 0,
@@ -509,10 +729,75 @@ async function loadPortfolio() {
     renderAnalytics(trackedItems.length ? trackedItems : portfolio);
     renderChart(trackedItems.length ? trackedItems : portfolio);
     updateCareer(portData.summary || { total_pnl:0, total_value:0, total_invested:0, total_pnl_pct:0 }, trackedItems.length);
-    showToast(`Загружено ${portfolio.length} предметов`);
+    const totalAssets = invData.total_count || invData.items?.length || 0;
+    showToast(`Загружено ${portfolio.length} групп / ${totalAssets} предметов`);
   } catch(e) {
     showToast('Ошибка: ' + e.message);
     content.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">${e.message}</div></div>`;
+  }
+}
+
+async function refreshInventory() {
+  if (!currentSteamId) { showToast('Сначала загрузите портфолио'); return; }
+  const btn = document.querySelector('.btn-refresh');
+  if (!btn) return;
+  btn.classList.add('spinning');
+  btn.textContent = ' Обновляем...';
+
+  try {
+    const [invData, portData] = await Promise.all([
+      apiFetch(`/api/inventory/${currentSteamId}`),
+      apiFetch(`/api/portfolio/${currentSteamId}`),
+    ]);
+
+    const portMap = {};
+    for (const item of (portData.items || [])) portMap[item.market_hash_name] = item;
+
+    portfolio = (invData.items || []).map(inv => {
+      const saved = portMap[inv.market_hash_name];
+      const invQty = inv.quantity ?? 1;
+      return {
+        market_hash_name: inv.market_hash_name,
+        image_url: inv.image_url,
+        rarity: inv.rarity, wear: inv.wear, tradable: inv.tradable,
+        inventory_quantity: invQty,
+        buy_price:        saved?.buy_price        ?? null,
+        buy_source:       saved?.buy_source       ?? 'steam',
+        quantity:         saved?.quantity         ?? invQty,
+        lots:             saved?.lots             ?? [],
+        lot_count:        saved?.lot_count        ?? 0,
+        avg_buy_price:    saved?.avg_buy_price    ?? null,
+        current_price:    saved?.current_price    ?? inv.current_price    ?? 0,
+        best_price:       saved?.best_price       ?? inv.best_price       ?? saved?.current_price ?? 0,
+        price_steam:      saved?.price_steam      ?? inv.price_steam      ?? null,
+        price_lisskins:   saved?.price_lisskins   ?? inv.price_lisskins   ?? null,
+        price_market_csgo:saved?.price_market_csgo ?? inv.price_market_csgo ?? null,
+        best_source:      saved?.best_source      ?? inv.best_source      ?? 'steam',
+        total_value:      saved?.total_value      ?? 0,
+        invested:         saved?.invested         ?? 0,
+        pnl:              saved?.pnl              ?? 0,
+        pnl_pct:          saved?.pnl_pct          ?? 0,
+        tracked: !!saved,
+      };
+    });
+
+    if (portfolio.length === 0) {
+      document.getElementById('itemsContent').innerHTML = '<div class="empty"><div class="empty-icon">🔒</div><div class="empty-text">Инвентарь пустой или скрыт.<br>Проверьте настройки приватности Steam.</div></div>';
+      document.getElementById('itemsHeader').style.display = 'none';
+    } else {
+      const trackedItems = portfolio.filter(i => i.tracked);
+      if (portData.summary) renderStats(portData.summary);
+      renderItems(portfolio);
+      renderAnalytics(trackedItems.length ? trackedItems : portfolio);
+      renderChart(trackedItems.length ? trackedItems : portfolio);
+      updateCareer(portData.summary || { total_pnl:0, total_value:0, total_invested:0, total_pnl_pct:0 }, trackedItems.length);
+      showToast(`Обновлено: ${portfolio.length} предметов`);
+    }
+  } catch(e) {
+    showToast('Ошибка: ' + e.message);
+  } finally {
+    btn.classList.remove('spinning');
+    btn.textContent = '↻ Обновить';
   }
 }
 
@@ -611,9 +896,11 @@ function renderItems(items) {
   const srcShortMap = { steam:'STM', lisskins:'LIS', market_csgo:'MKT' };
   content.innerHTML = items.map((item, i) => {
     const rc = rarityColor(item.rarity);
+    const qty = item.quantity || 1;
     const imgSrc = item.image_url
       ? `<img src="${item.image_url}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="img-fallback" style="display:none">⬡</span>`
       : `<span class="img-fallback">⬡</span>`;
+    const qtyBadge = qty > 1 ? `<span class="qty-badge">×${qty}</span>` : '';
     let rightCol;
     if (item.tracked) {
       const s = item.pnl>=0?'+':'', cls=item.pnl>=0?'c-green':'c-red';
@@ -621,17 +908,21 @@ function renderItems(items) {
       rightCol = `<div class="item-right">
         <div class="item-price">$${(item.best_price||item.current_price||0).toFixed(2)}</div>
         <div class="item-pnl ${cls}">${s}$${Math.abs(item.pnl).toFixed(2)}</div>
-        <div class="item-qty">${src}${item.quantity>1?' ×'+item.quantity:''}</div>
+        <div class="item-qty">${src}</div>
       </div>`;
     } else {
+      const bp = item.best_price || item.current_price || 0;
+      const priceLine = bp > 0
+        ? `<div style="font-family:var(--mono);font-size:11px;color:var(--text2)">$${bp.toFixed(2)}</div>`
+        : `<div style="font-family:var(--mono);font-size:9px;color:var(--muted)">нет цены</div>`;
       rightCol = `<div class="item-right">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">не отслеживается</div>
+        ${priceLine}
         <div style="font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:3px;cursor:pointer" onclick="event.stopPropagation();quickTrack(${i})">+ ДОБАВИТЬ</div>
       </div>`;
     }
     return `<div class="item-card${item.tracked?'':' untracked'}" onclick="openDetail(${i})">
       <div class="rarity-stripe" style="background:${rc}"></div>
-      <div class="item-thumb">${imgSrc}</div>
+      <div class="item-thumb">${imgSrc}${qtyBadge}</div>
       <div class="item-info">
         <div class="item-name">${item.market_hash_name}</div>
         <div class="item-tags">${item.wear?wearTag(item.wear):''}${item.rarity?rarityTag(item.rarity):''}</div>
@@ -648,7 +939,31 @@ function quickTrack(idx) {
   const img = item.image_url ? `<img class="selected-thumb" src="${item.image_url}"/>` : `<div class="selected-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px">⬡</div>`;
   document.getElementById('selectedSkinPreview').innerHTML = `${img}<div><div class="selected-name">${item.market_hash_name}</div><div class="selected-price">Введите цену покупки</div></div>`;
   document.getElementById('addForm').style.display = 'block';
+  applyQtyLimitFor(item.market_hash_name);
   switchTabById('add');
+}
+
+function getRemainingFor(name) {
+  const item = portfolio.find(p => p.market_hash_name === name);
+  if (!item) return null;
+  const inv = item.inventory_quantity ?? 0;
+  const tracked = (item.lots || []).reduce((s, l) => s + l.quantity, 0);
+  return { inv, tracked, remaining: Math.max(0, inv - tracked) };
+}
+
+function applyQtyLimitFor(name) {
+  const r = getRemainingFor(name);
+  const hint = document.getElementById('qtyHint');
+  const inp = document.getElementById('buyQty');
+  if (!r || r.inv === 0) {
+    hint.textContent = '';
+    inp.removeAttribute('max');
+    return;
+  }
+  hint.textContent = `доступно: ${r.remaining} из ${r.inv}`;
+  hint.style.color = r.remaining === 0 ? 'var(--red2)' : 'var(--muted)';
+  inp.setAttribute('max', String(r.remaining));
+  if (parseInt(inp.value) > r.remaining) inp.value = String(Math.max(1, r.remaining));
 }
 
 // ── Analytics ──────────────────────────────────────────────────────────────────
@@ -703,7 +1018,7 @@ async function openDetail(idx) {
   let statsHtml='', actionsHtml='';
   if (item.tracked) {
     const s=item.pnl>=0?'+':'', cls=item.pnl>=0?'c-green':'c-red';
-    const srcLabel = {steam:'Steam',lisskins:'Lisskins',market_csgo:'Market.CSGO'}[item.buy_source]||'Steam';
+    const srcShort = {steam:'STM',lisskins:'LIS',market_csgo:'MKT'};
     const fmt = v => v != null ? '$'+v.toFixed(2) : '—';
     const bestSrc = item.best_source || 'steam';
     let histSvg='';
@@ -711,6 +1026,22 @@ async function openDetail(idx) {
       const hist = await apiFetch(`/api/history/${encodeURIComponent(item.market_hash_name)}`);
       if (hist.history?.length>1) histSvg = buildMiniChart(hist.history.map(h=>h.price_usd),320,52,'#f9c74f');
     } catch(_) {}
+    const lotsHtml = (item.lots && item.lots.length) ? `
+      <div class="lots-list">
+        <div class="lots-header">ЛОТЫ (${item.lot_count || item.lots.length})</div>
+        ${item.lots.map(lot => `
+          <div class="lot-row">
+            <div class="lot-info">
+              <span class="lot-src">${srcShort[lot.buy_source]||'STM'}</span>
+              <span class="lot-qty">${lot.quantity}шт</span>
+              <span class="lot-price">$${lot.buy_price.toFixed(2)}</span>
+            </div>
+            <button class="lot-del" onclick="deleteLot(${lot.id})" title="Удалить лот">✕</button>
+          </div>
+        `).join('')}
+      </div>` : '';
+    const trackedNote = (item.inventory_quantity && item.inventory_quantity > item.quantity)
+      ? `<div style="text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">Отслеживается ${item.quantity} из ${item.inventory_quantity} в инвентаре</div>` : '';
     statsHtml = `
       <div class="prices-grid">
         <div class="psg-card${bestSrc==='steam'?' best':''}">
@@ -731,12 +1062,18 @@ async function openDetail(idx) {
       </div>
       <div class="detail-stats">
         <div class="ds-card"><div class="ds-label">ЛУЧШАЯ ЦЕНА</div><div class="ds-val c-green">${fmt(item.best_price||item.current_price)}</div></div>
-        <div class="ds-card"><div class="ds-label">КУПЛЕНО</div><div class="ds-val" style="font-size:12px">${srcLabel} <span style="font-size:10px;color:var(--muted)">$${item.buy_price.toFixed(2)}</span></div></div>
+        <div class="ds-card"><div class="ds-label">КУПЛЕНО</div><div class="ds-val" style="font-size:12px">${item.quantity} шт <span style="font-size:10px;color:var(--muted)">avg $${(item.avg_buy_price ?? item.buy_price ?? 0).toFixed(2)}</span></div></div>
         <div class="ds-card"><div class="ds-label">P&amp;L</div><div class="ds-val ${cls}">${s}$${Math.abs(item.pnl).toFixed(2)}</div></div>
         <div class="ds-card"><div class="ds-label">ДОХОДНОСТЬ</div><div class="ds-val ${cls}">${s}${item.pnl_pct.toFixed(1)}%</div></div>
       </div>
-      ${histSvg?`<div class="mini-hist">${histSvg}</div>`:''}`;
-    actionsHtml = `<div class="detail-actions"><button class="btn-del" onclick="deleteItem(${idx})">Удалить</button><button class="btn-close" onclick="closeDetail()">Закрыть</button></div>`;
+      ${histSvg?`<div class="mini-hist">${histSvg}</div>`:''}
+      ${trackedNote}
+      ${lotsHtml}`;
+    actionsHtml = `<div class="detail-actions">
+      <button class="btn-track" onclick="closeDetail();quickTrack(${idx})">+ ЛОТ</button>
+      <button class="btn-del" onclick="deleteItem(${idx})">Удалить всё</button>
+      <button class="btn-close" onclick="closeDetail()">×</button>
+    </div>`;
   } else {
     statsHtml = `<div style="text-align:center;font-family:var(--mono);color:var(--muted);font-size:11px;padding:8px 0 16px;line-height:1.7">Предмет не отслеживается —<br>добавьте цену покупки чтобы считать P&L</div>`;
     actionsHtml = `<div class="detail-actions"><button class="btn-track" onclick="closeDetail();quickTrack(${idx})">+ Отслеживать</button><button class="btn-close" onclick="closeDetail()">Закрыть</button></div>`;
@@ -757,6 +1094,13 @@ async function deleteItem(idx) {
   try {
     await apiFetch(`/api/portfolio/${currentSteamId}/${encodeURIComponent(item.market_hash_name)}`,{method:'DELETE'});
     showToast('Удалено'); closeDetail(); loadPortfolio();
+  } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+async function deleteLot(lotId) {
+  try {
+    await apiFetch(`/api/portfolio/lot/${lotId}`,{method:'DELETE'});
+    showToast('Лот удалён'); closeDetail(); loadPortfolio();
   } catch(e) { showToast('Ошибка: '+e.message); }
 }
 
@@ -861,6 +1205,7 @@ async function selectSkin(skin) {
       </div>
     </div>`;
   document.getElementById('addForm').style.display = 'block';
+  applyQtyLimitFor(skin.market_hash_name);
 }
 
 // Позволяет кликнуть на ценовой тег в превью — выбрать платформу
@@ -876,11 +1221,23 @@ async function submitAddItem() {
   const qty = parseInt(document.getElementById('buyQty').value)||1;
   if (!steamId) { showToast('Введите Steam ID'); return; }
   if (!buyPrice||buyPrice<=0) { showToast('Введите корректную цену'); return; }
+
+  const r = getRemainingFor(pendingSkin.market_hash_name);
+  if (r && r.inv > 0 && qty > r.remaining) {
+    showToast(`Доступно ${r.remaining} из ${r.inv}, отслеживается ${r.tracked}`);
+    return;
+  }
+
   try {
     await apiFetch('/api/portfolio/item',{method:'POST',body:JSON.stringify({steam_id:steamId,market_hash_name:pendingSkin.market_hash_name,buy_price:buyPrice,quantity:qty,buy_source:selectedBuySource})});
     showToast('Добавлено в портфолио!');
     currentSteamId=steamId;
-    document.getElementById('steamInput').value=steamId;
+    if (!findAccount(steamId)) {
+      upsertAccount({ steam_id: steamId, vanity: null, name: null });
+      setActiveAccountId(steamId);
+      renderAccountsUI();
+    }
+    document.getElementById('steamInput').value='';
     document.getElementById('skinSearch').value='';
     document.getElementById('addForm').style.display='none';
     pendingSkin=null;
@@ -907,6 +1264,17 @@ function showToast(msg) {
   t.textContent=msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
 }
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+(function init() {
+  renderAccountsUI();
+  const active = getActiveAccountId();
+  if (active) {
+    currentSteamId = active;
+    document.getElementById('addSteamId').value = active;
+    loadPortfolio();
+  }
+})();
 </script>
 </body>
 </html>
